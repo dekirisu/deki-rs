@@ -1,7 +1,7 @@
 <h1 align="center">🦀 My Rusty Base 🦀</h1>
 <p align="center">
-    <a href="https://github.com/dekirisu/derive_preset" style="position:relative"><img src="https://img.shields.io/badge/github-dekirisu/derive_preset-ee6677"></a>
-    <a href="https://crates.io/crates/derive_preset" style="position:relative"><img src="https://img.shields.io/crates/v/derive_preset"></a>
+    <a href="https://github.com/dekirisu/deki-rs" style="position:relative"><img src="https://img.shields.io/badge/github-dekirisu/deki-rs-ee6677"></a>
+    <a href="https://crates.io/crates/deki" style="position:relative"><img src="https://img.shields.io/crates/v/deki"></a>
 </p>
 
 ## What is this?
