@@ -34,12 +34,14 @@
     - Note: Assuming any `Hash` derivator is small and therefore fine to be copied!
 - auto-impl trait marker `Syncable` for anything implementing `'static+Send+Sync`
     - mainly used as 'rename' to use in trait bounds
+- auto-impl trait `DefaultClear` for anything implementing `Default`, id adds `.clear()` to set it back to default
 - auto-impl trait `Lerpable` for any type with necessary maths to perform linear interpolation
     - e.g. `3.0.lerp(4.0,0.1)` or any future type you impl maths for
 - auto-impl trait `LerpableDeref` for any type that derefs to a type with necessary maths to perform linear interpolation
     - e.g. `#[deref] struct AStruct(#[deref]f32);` -> `AStruct(3.0).lerp(AStruct(4.0),0.1)`
 - extend `f32` by `.smooth()` to apply cheap ease-in and -out (smooth-step) if within 0..=1
 - extend `f32` by `.clamp_unit()` = `.clamp(0.0,1.0)`
+- extend `Ramge<T>` & `RangeInclusive<T>` by `.add(T)` to offset it
 - (optional) re-export [fastrand](https://github.com/smol-rs/fastrand): `self` as `random`
     - extend `Vec` by `.random()`
 - (optional) re-export [fastapprox](https://github.com/loony-bean/fastapprox-rs): all `*` (modified) as `approx`
