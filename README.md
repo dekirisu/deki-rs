@@ -15,7 +15,7 @@
 > Since this crate doesn't have a specific purpose, it may change a lot between 'minor' versions.
 > That said, I'll follow semantic versioning of course! ✨
 
-## Stuff
+## What does it do?
 - add `PhantomData` alias `Ghost`
 - re-export [maflow](https://github.com/dekirisu/maflow): all `*`
 - re-export [type_cell](https://github.com/dekirisu/type_cell): all `*`
@@ -27,10 +27,10 @@
 - re-export [derive_more](https://github.com/JelteF/derive_more): `self` as `derive_more` and `drv`
     - e.g. `#[derive(drv::Deref)] struct AStruct(#[deref]u32);`
 - derive presets, by using [derive_preset](https://github.com/dekirisu/derive_preset):
-    - `#[hashable(..)]` = `#[derive(PartialEq,Eq,Hash,Clone,Copy)]`
+    - `#[hashable(..)]` = `#[derive(PartialEq,Eq,Hash,Clone,Copy,..)]`
     - `#[serde(..)]` = `#[derive(Serialize,Deserialize,Clone,..)]`
     - `#[serde_hash(..)]` = `#[derive(Serialize,Deserialize,PartialEq,Eq,Hash,Clone,Copy,..)]`
-    - `#[deref(..)]` = `#[derive(drv::Deref,drv::DerefMut)]`
+    - `#[deref(..)]` = `#[derive(drv::Deref,drv::DerefMut,..)]`
     - Note: Assuming any `Hash` derivator is small and therefore fine to be copied!
 - auto-impl trait marker `Syncable` for anything implementing `'static+Send+Sync`
     - mainly used as 'rename' to use in trait bounds
@@ -45,7 +45,7 @@
 - (optional) re-export [fastapprox](https://github.com/loony-bean/fastapprox-rs): all `*` (modified) as `approx`
     - extend `f32` by `.{operation}_ca` (ca = circa (latin))
 
-## Some Synergies
+## Synergies
 A struct with `PhantomData`:
 ```rust
 #[derive(Constructor)]
