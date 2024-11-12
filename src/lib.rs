@@ -189,4 +189,19 @@ use std::ops::{Add,Deref,DerefMut,Sub};
 
     }
 
+// Quick Constant \\
+
+    /// create a constant struct and name it after itself
+    #[macro_export]
+    macro_rules! qonst {
+        ($ty:ty: $($tt:tt)*) => {paste!{
+            pub const [<$ty:snake:upper>]: $ty = $ty {
+                $($tt)*
+            };
+        }};
+        ($ty:ident::$($tt:tt)*) => {paste!{
+            pub const [<$ty:snake:upper>]: $ty = $ty::$($tt)*;
+        }};
+    }
+
 // EOF \\

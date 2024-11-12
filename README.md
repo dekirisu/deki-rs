@@ -42,6 +42,7 @@
 - extend `f32` by `.smooth()` to apply cheap ease-in and -out (smooth-step) if within 0..=1
 - extend `f32` by `.clamp_unit()` = `.clamp(0.0,1.0)`
 - extend `Ramge<T>` & `RangeInclusive<T>` by `.add(T)` to offset it
+- macro `qonst!` (quick const): set a type and a value, name is automatically set to the type name in uppercase
 - (optional) re-export [fastrand](https://github.com/smol-rs/fastrand): `self` as `random`
     - extend `Vec` by `.random()`
 - (optional) re-export [fastapprox](https://github.com/loony-bean/fastapprox-rs): all `*` (modified) as `approx`
