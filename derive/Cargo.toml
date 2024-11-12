@@ -2,6 +2,9 @@
 name = "deki_derive"
 version = "0.1.0"
 edition = "2021"
+authors = ["Dekirisu <dekirisu@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "proc-macro for deki!"
 
 [lib]
 proc-macro = true
