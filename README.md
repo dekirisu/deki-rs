@@ -36,7 +36,7 @@
     - mainly used as 'rename' to use in trait bounds
 - auto-impl trait `Lerpable` for any type with necessary maths to perform linear interpolation
     - e.g. `3.0.lerp(4.0,0.1)` or any future type you impl maths for
-- auto-impl trait `LerpableDeref` for any type that deferes to a tyoe with necessary maths to perform linear interpolation
+- auto-impl trait `LerpableDeref` for any type that derefs to a type with necessary maths to perform linear interpolation
     - e.g. `#[deref] struct AStruct(#[deref]f32);` -> `AStruct(3.0).lerp(AStruct(4.0),0.1)`
 - extend `f32` by `.smooth()` to apply cheap ease-in and -out (smooth-step) if within 0..=1
 - extend `f32` by `.clamp_unit()` = `.clamp(0.0,1.0)`
