@@ -12,14 +12,36 @@ pub use buns;
     pub use derive_more as drv;
     pub use buns::sandwich;
 
-// Traits Bound Naming \\
+// Traits \\
 
     /// 'Short form' for: 'static+Send+Sync
     pub trait Syncable:'static+Send+Sync {}
     impl <T:'static+Send+Sync> Syncable for T {}
 
+    pub trait DefaultClear: Default {
+        fn clear(&mut self){*self = Self::default();}
+    }
+    impl <A:Default> DefaultClear for A {}
+
+// Extensionss  \\
+use std::ops::{Mul, Range, RangeInclusive};
+
+    #[ext(pub trait RangeOffset)]
+    impl <Idx:Clone+Add<Output=Idx>> RangeInclusive<Idx> {
+        fn offset(&self,rhs:Idx) -> Self {
+            self.start().clone()+rhs.clone()
+            ..=self.end().clone()+rhs.clone()
+        }
+    }
+
+    impl <Idx:Clone+Add<Output=Idx>> RangeOffset<Idx> for Range<Idx> {
+        fn offset(&self,rhs:Idx) -> Self {
+            self.start.clone()+rhs.clone()..self.end.clone()+rhs.clone()
+        }
+    }
+
 // Quick Interpolation \\
-use std::ops::{Add, Deref, DerefMut, Mul, Sub};
+use std::ops::{Add,Deref,DerefMut,Sub};
 
     /// Any type that implements necessary math traits for linear interpolation (lerp)
     pub trait Lerpable {
