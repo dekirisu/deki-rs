@@ -1,6 +1,7 @@
 use deki_core::*;
 use std::ops::{Add, Mul, Sub};
 mod relative; pub use relative::*;
+mod absolute; pub use absolute::*;
 
 // Goodies \\
 

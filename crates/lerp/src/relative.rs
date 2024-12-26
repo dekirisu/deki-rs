@@ -67,33 +67,33 @@ use crate::*;
     pub trait Clerpable {
         /// get closest delta, whichever direction is closer
         /// - assumes self and the target are inside range
-        fn cdelta(&self,to:Self,min:Self,max:Self) -> Self;
+        fn delta_qucy(&self,to:Self,min:Self,max:Self) -> Self;
         /// lerp to a value, auto-choosing which direction is fastest
         /// - assumes self and the target are inside range
-        fn clerp(&self,to:Self,lerp:f32,min:Self,max:Self) -> Self;
+        fn lerp_qucy(&self,to:Self,lerp:f32,min:Self,max:Self) -> Self;
         /// lerp to a value, auto-choosing which direction is fastest, snaps to goal with 
         /// using a threshold
         /// - assumes self and the target are inside range
-        fn cglerp(&mut self,to:Self,lerp:f32,thresh:Self,min:Self,max:Self) -> bool;
+        fn glerp_qucy(&mut self,to:Self,lerp:f32,thresh:Self,min:Self,max:Self) -> bool;
     }
 
     buns::sandwich!{
         impl Clerpable for ^0 {
             #[inline]
-            fn cdelta(&self,to:Self,min:Self,max:Self) -> Self {
+            fn delta_qucy(&self,to:Self,min:Self,max:Self) -> Self {
                 let delta = to - *self;
                 let deltabs = delta.abs();
                 let dolta = max - min - deltabs;
                 if deltabs < dolta {delta} else {-dolta * delta.signum()}
             }
             #[inline]
-            fn clerp(&self,to:Self,lerp:f32,min:Self,max:Self) -> Self {
-                let delta = self.cdelta(to,min,max);
+            fn lerp_qucy(&self,to:Self,lerp:f32,min:Self,max:Self) -> Self {
+                let delta = self.delta_qucy(to,min,max);
                 self.add_qucy((delta as f32 * lerp) as ^0,min,max)
             }
             #[inline]
-            fn cglerp(&mut self,to:Self,lerp:f32,thresh:Self,min:Self,max:Self) -> bool {
-                let delta = self.cdelta(to,min,max);
+            fn glerp_qucy(&mut self,to:Self,lerp:f32,thresh:Self,min:Self,max:Self) -> bool {
+                let delta = self.delta_qucy(to,min,max);
                 if delta.abs() <= thresh || lerp >= 1. {
                     *self = to; 
                     true
