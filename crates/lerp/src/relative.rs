@@ -98,7 +98,7 @@ use crate::*;
                     *self = to; 
                     true
                 } else {
-                    *self += delta.mul_f32(lerp);
+                    *self = self.add_qucy(delta.mul_f32(lerp),min,max);
                     false
                 }          
             }
