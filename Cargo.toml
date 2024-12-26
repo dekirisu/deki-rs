@@ -12,11 +12,16 @@ repository = "https://github.com/dekirisu/deki-rs/"
 deki_core.workspace = true
 deki_derive.workspace = true
 deki_lerp = {workspace=true,optional=true}
+deki_proc = {workspace=true,optional=true}
 
 [workspace.dependencies.deki_core]
 path = "crates/core"
 version = "0.1"
 default-features = false
+
+[workspace.dependencies.deki_proc]
+path = "crates/proc"
+version = "0.1"
 
 [workspace.dependencies.deki_derive]
 path = "crates/derive"
@@ -31,6 +36,7 @@ default = ["random","approx","lerp"]
 random = ["deki_core/random"]
 approx = ["deki_core/approx"]
 lerp = ["dep:deki_lerp"]
+proc = ["dep:deki_proc"]
 
 [workspace]
 members = ["crates/*"]
