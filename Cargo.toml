@@ -2,9 +2,10 @@
 name = "deki"
 version = "0.2.0"
 edition = "2021"
+
 authors = ["Dekirisu <dekirisu@gmail.com>"]
 license = "MIT OR Apache-2.0"
-description = "A collection of crates, functions and renames tailored to myself!"
+description = "A base for most of my rust projects (tailored to myself)!"
 repository = "https://github.com/dekirisu/deki-rs/"
 
 [dependencies]

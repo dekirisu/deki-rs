@@ -3,5 +3,10 @@ name = "deki_lerp"
 version = "0.1.0"
 edition = "2021"
 
+authors = ["Dekirisu <dekirisu@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Simple linear interpolations!"
+repository = "https://github.com/dekirisu/deki-rs/"
+
 [dependencies]
 deki_core.workspace = true
