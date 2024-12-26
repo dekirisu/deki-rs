@@ -1,5 +1,5 @@
 pub use deki_derive::*;
-pub use core::*;
+pub use deki_core::*;
 
 #[cfg(feature="proc")]
 pub use deki_proc::*;    
