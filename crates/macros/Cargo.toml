@@ -1,0 +1,16 @@
+[package]
+name = "deki_macros"
+version = "0.1.0"
+edition = "2021"
+
+authors = ["Dekirisu <dekirisu@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "A growing set of macros (tailored to myself)!"
+repository = "https://github.com/dekirisu/deki-rs/"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+deki_core.workspace = true
+deki_proc.workspace = true

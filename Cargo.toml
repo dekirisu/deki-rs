@@ -1,6 +1,6 @@
 [package]
 name = "deki"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 
 authors = ["Dekirisu <dekirisu@gmail.com>"]
@@ -11,6 +11,7 @@ repository = "https://github.com/dekirisu/deki-rs/"
 [dependencies]
 deki_core.workspace = true
 deki_derive.workspace = true
+deki_macros.workspace = true
 deki_lerp = {workspace=true,optional=true}
 deki_proc = {workspace=true,optional=true}
 
@@ -29,6 +30,10 @@ version = "0.1"
 
 [workspace.dependencies.deki_lerp]
 path = "crates/lerp"
+version = "0.1"
+
+[workspace.dependencies.deki_macros]
+path = "crates/macros"
 version = "0.1"
 
 [features]
