@@ -123,6 +123,9 @@ use proc_macro2::token_stream::IntoIter;
         fn with_span(self,span:Span) -> Self {
             Self::from_iter(self.into_iter().map(|mut a|{a.set_span(span);a}))
         }
+        fn as_vec(self) -> Vec<TokenTree> {
+            self.into_iter().collect()
+        }
     }
 
     pub type PeekIter = Peekable<IntoIter>;
