@@ -1,13 +1,22 @@
 use std::iter::Peekable;
-use convert_case::Casing;
 use deki_core::*;
+use syn::*;
+use proc_macro2::token_stream::IntoIter; 
 pub use quote;
 pub use proc_macro2;
-use proc_macro2::*;
 pub use syn;
-use syn::*;
-pub use convert_case::{self,Case};
-use proc_macro2::token_stream::IntoIter; 
+pub use convert_case;
+
+// Specific Re-Exports \\
+
+    pub use convert_case::{Case,Casing};
+    pub use quote::{quote as qt, quote_spanned as qts, ToTokens};
+    pub use proc_macro2::{
+        Delimiter, Span, TokenStream, TokenTree, // no-brainers
+        Group, Ident, Punct, Literal // probably always needed
+    };
+    pub use syn::spanned::Spanned;
+
 
 // String <> Ident \\
 
@@ -21,6 +30,7 @@ use proc_macro2::token_stream::IntoIter;
         fn ident(&self) -> Ident {Ident::new(self,Span::call_site())}
         fn ident_span(&self,span:Span) -> Ident {Ident::new(self,span)}
     }
+
 
 // Atomic Exts \\
 
@@ -43,6 +53,7 @@ use proc_macro2::token_stream::IntoIter;
     impl Punct {
     
     }
+
 
 // Neat Token Iterator \\
 
@@ -112,6 +123,7 @@ use proc_macro2::token_stream::IntoIter;
             tok.is_punct(punct)
         }
     }
+
 
 // Stream Handling \\
 
@@ -184,6 +196,7 @@ use proc_macro2::token_stream::IntoIter;
             out
         }
     }
+
 
 // EOF \\
 

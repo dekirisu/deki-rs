@@ -3,6 +3,7 @@ pub use type_cell::*;
 pub use derive_more;
 pub use buns;
 
+
 // Renames \\
 
     pub use std::marker::PhantomData as Ghost;
@@ -10,6 +11,7 @@ pub use buns;
     pub use extension_traits::extension as ext;
     pub use derive_more as drv;
     pub use buns::sandwich;
+    pub type Str = &'static str;
 
 // Traits \\
 
@@ -21,6 +23,7 @@ pub use buns;
         fn clear(&mut self){*self = Self::default();}
     }
     impl <A:Default> DefaultClear for A {}
+
 
 // Extensionss  \\
 use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
@@ -38,6 +41,7 @@ use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
             self.start.clone()+rhs.clone()..self.end.clone()+rhs.clone()
         }
     }
+
 
 // Cycling Addition \\
 
@@ -108,6 +112,7 @@ use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
         #i8 #i16 #i32 #i64 #i128 #isize
     }
 
+
 // Randomness \\
 
     /// quick and easy randomness
@@ -134,6 +139,7 @@ use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
             &self[random::usize(0..self.len())]
         }
     }
+
 
 // Approx Math \\
 
@@ -210,6 +216,7 @@ use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
 
     }
 
+
 // Quick Constant \\
 
     /// create a constant struct and name it after itself
@@ -224,5 +231,6 @@ use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
             pub const [<$ty:snake:upper>]: $ty = $ty::$($tt)*;
         }};
     }
+
 
 // EOF \\
