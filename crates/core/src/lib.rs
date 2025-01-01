@@ -25,8 +25,8 @@ pub use buns;
     impl <A:Default> DefaultClear for A {}
 
 
-// Extensionss  \\
-use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
+// Extensions  \\
+use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::Iter, vec::IntoIter};
 
     #[ext(pub trait RangeOffset)]
     impl <Idx:Clone+Add<Output=Idx>> RangeInclusive<Idx> {
@@ -40,6 +40,53 @@ use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
         fn offset(&self,rhs:Idx) -> Self {
             self.start.clone()+rhs.clone()..self.end.clone()+rhs.clone()
         }
+    }
+
+
+// Stack Map \\
+
+    /// Keys keep the order they're added in.
+    #[derive(Constructor)]
+    pub struct StackMap<K:PartialEq,V> {
+        #[new(default)] pub keys: Vec<K>,
+        #[new(default)] pub value: Vec<V>
+    }
+
+    impl <K:PartialEq,V:Default> StackMap<K,V> {
+        /// - get a mutable reference to the value of a key
+        /// - not in map? insert default value before returning
+        pub fn entry(&mut self,key:K) -> &mut V {
+            match self.key_idx(&key){
+                None => {
+                    self.keys.push(key);
+                    self.value.push(V::default());
+                    self.value.last_mut().unwrap()
+                }
+                Some(id) => &mut self.value[id]
+            }
+        }
+    }
+
+    impl <K:PartialEq,V> StackMap<K,V> {
+        /// - Some(idx): index of requested key
+        /// - None: not part of the map
+        pub fn key_idx(&self,key:&K) -> Option<usize> {
+            self.keys.iter().enumerate().find_map(|(id,k)|if key==k {Some(id)} else {None})
+        }
+        /// read-only reference iterator
+        pub fn iter(&self) -> Zip<Iter<K>,Iter<V>> {
+            zip(self.keys.iter(),self.value.iter())
+        }
+        /// consuming iterator
+        pub fn into_iter(self) -> Zip<IntoIter<K>,IntoIter<V>> {
+            zip(self.keys.into_iter(),self.value.into_iter())
+        }
+        /// true if empty
+        pub fn is_empty(&self) -> bool {self.keys.is_empty()}
+    }
+
+    impl <K:PartialEq,V:Default> Default for StackMap<K,V> {
+        fn default() -> Self {Self::new()}
     }
 
 
