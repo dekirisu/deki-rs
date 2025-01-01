@@ -57,6 +57,13 @@ pub use convert_case;
 
 // Neat Token Iterator \\
 
+    /// Token Level Return
+    /// - Some: It's the requested thing
+    /// - None: It can't be the requested thing
+    /// - Maybe: It can be the requested thing, but something is missing
+    #[derive(Default)]
+    pub enum Check<T,M> {#[default] None, Some(T), Maybe(M)}
+
     #[ext(pub trait TokenTreeExt)]
     impl TokenTree {
         /// check if this is an ident, use .. && self.is_string(..) for a specific
@@ -126,6 +133,24 @@ pub use convert_case;
 
 
 // Stream Handling \\
+
+    /// Stream Level Return
+    /// - None: Iter didn't progress: Can't be the requested thing
+    /// - Base: Iter progressed (e.g. due to checks), here are the OG things
+    /// - Shift: Iter progressed: Successfully processed whatever requested
+    #[derive(Default)]
+    pub enum Step<T,M> {#[default] None, Base(T), Shift(M)}
+
+    impl <T,M> Step <T,M> {
+        pub fn risk_shift(self) -> M {match self {
+            Self::Shift(m) => m,
+            _ => panic!{}
+        }}
+        pub fn shift_or(self,m:M) -> M {match self {
+            Self::Shift(m) => m,
+            _ => m
+        }}
+    }
 
     #[ext(pub trait TokenStreamExt)]
     impl TokenStream {
