@@ -17,24 +17,24 @@ deki_proc = {workspace=true,optional=true}
 
 [workspace.dependencies.deki_core]
 path = "crates/core"
-version = "0.1"
+version = "0.1.1"
 default-features = false
 
 [workspace.dependencies.deki_proc]
 path = "crates/proc"
-version = "0.1"
+version = "0.1.2"
 
 [workspace.dependencies.deki_derive]
 path = "crates/derive"
-version = "0.1"
+version = "0.1.0"
 
 [workspace.dependencies.deki_lerp]
 path = "crates/lerp"
-version = "0.1"
+version = "0.1.0"
 
 [workspace.dependencies.deki_macros]
 path = "crates/macros"
-version = "0.1"
+version = "0.1.0"
 
 [features]
 default = ["random","approx","lerp"]
