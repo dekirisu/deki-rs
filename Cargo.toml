@@ -1,6 +1,6 @@
 [package]
 name = "deki"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2021"
 
 authors = ["Dekirisu <dekirisu@gmail.com>"]
@@ -22,7 +22,7 @@ default-features = false
 
 [workspace.dependencies.deki_proc]
 path = "crates/proc"
-version = "0.1.2"
+version = "0.1.3"
 
 [workspace.dependencies.deki_derive]
 path = "crates/derive"
