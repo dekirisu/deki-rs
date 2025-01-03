@@ -54,6 +54,22 @@ pub use convert_case;
     
     }
 
+    #[ext(pub trait DelimiterExt)]
+    impl Delimiter {
+        fn is_parenthesis(&self) -> bool {
+            if let Self::Parenthesis = self {true} else {false}
+        }        
+        fn is_brace(&self) -> bool {
+            if let Self::Brace = self {true} else {false}
+        }        
+        fn is_bracked(&self) -> bool {
+            if let Self::Bracket = self {true} else {false}
+        }
+        fn is_none(&self) -> bool {
+            if let Self::None = self {true} else {false}
+        }
+    }
+
 
 // Neat Token Iterator \\
 
