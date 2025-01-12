@@ -36,6 +36,10 @@ version = "0.1.0"
 path = "crates/macros"
 version = "0.1.0"
 
+[workspace.dependencies]
+maflow = "0.1"
+extension-traits = "2.0.0"    
+
 [features]
 default = ["random","approx","lerp"]
 random = ["deki_core/random"]

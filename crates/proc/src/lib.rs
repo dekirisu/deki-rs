@@ -1,5 +1,6 @@
+use extension_traits::extension as ext;
 use std::iter::Peekable;
-use deki_core::*;
+use maflow::*;
 use syn::*;
 use proc_macro2::token_stream::IntoIter; 
 pub use quote;
