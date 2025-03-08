@@ -13,3 +13,4 @@ proc-macro = true
 
 [dependencies]
 derive_preset = "0.1" 
+deki_proc.workspace = true
