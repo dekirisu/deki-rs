@@ -13,6 +13,15 @@ pub use buns;
     pub use buns::sandwich;
     pub type Str = &'static str;
 
+// Cycle Trait \\
+
+    /// mainly meant for: `#[derive(Cycle)]` on simple enums
+    pub trait Cycle {
+        fn cycle_next(&self) -> Self;
+        fn cycle_prev(&self) -> Self;
+    }
+
+
 // Traits \\
 
     /// 'Short form' for: 'static+Send+Sync
