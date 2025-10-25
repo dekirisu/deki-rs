@@ -1,11 +1,11 @@
 use convert_case::Casing;
 use deki_core::*;
-use deki_proc::{syn::{Data, DeriveInput, Index}, *};
+use deki_proc::{syn::{parse2, Data, DeriveInput, Generics, Index}, *};
 use proc_macro2::{Delimiter, Group, TokenStream, TokenTree};
 use proc_macro::TokenStream as CompilerTokens;
 use syn::spanned::Spanned;
 
-// Utils \\
+// Random Utils \\
 
     #[proc_macro]
     pub fn xoxo(item:CompilerTokens) -> CompilerTokens {
@@ -36,6 +36,59 @@ use syn::spanned::Spanned;
             fn default() -> Self {Self{#(#mults),*}}
         }}.into()
     }
+
+    /// Quick Implementations:
+    /// - the trait has to have 1 required method
+    /// - ..which is named like tie trait (but snake-case)
+    ///
+    /// # Usage
+    /// ```rust
+    /// quimpl!{StructName
+    ///    fn clone(&self) -> Self {Self::new(self.0)};
+    ///    fn default() -> Self {Self::new(100)};
+    /// }
+    /// ```
+    #[proc_macro]
+    pub fn quimpl (item:CompilerTokens) -> CompilerTokens {
+        let stream: TokenStream = item.into();
+        let mut iter = stream.peek_iter();
+        let name = iter.next().unwrap();
+
+        let mut gens = qt!();
+        while let Some(tok) = iter.next_if(|a|!a.is_string("fn")) {
+            gens.extend([tok]);
+        }
+        let gens: Generics = parse2(gens).unwrap();
+        let (gen_impl,gen_typ,gen_where) = gens.split_for_impl();
+
+        let mut split = iter.split_punct('|');
+        let toki = split.remove(0);
+        let iter = toki.peek_iter();
+
+        let mut stream = qt!{};
+        for func in iter.split_punct(';') {
+            let mut fiter = func.peek_iter();
+            fiter.next();
+            let func = fiter.next().unwrap();
+            let trai = func.to_string().to_case(Case::Pascal).ident();
+            let stuff = TokenStream::from_iter(fiter);
+            stream.extend(qt!(
+                 impl #gen_impl #trai for #name #gen_typ #gen_where {
+                    fn #func #stuff
+                }
+            ));
+        }
+        let implo = split.pop().map(|a|{
+            TokenStream::from_iter(a.into_iter())
+        });
+        qt!{
+            #stream
+            impl #gen_impl #name #gen_typ #gen_where {
+                 #implo
+            }
+        }.into()
+    }
+
 
 
 // Force Name \\
