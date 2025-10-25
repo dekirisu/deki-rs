@@ -9,6 +9,19 @@ use syn::spanned::Spanned;
 
 // Random Utils \\
 
+    /// Replace every bool to a X or O:
+    /// - true: X
+    /// - false: O
+    ///
+    /// Meant to be used in bool matches:
+    /// ```rust
+    /// xoxo!{match [true,false,true] {
+    ///     [O,O,O] => "nope",
+    ///     [O,O,X] => "nope",
+    ///     [X,O,X] => "YEP!",
+    ///     [_,_,_] => "nope"
+    /// }}
+    /// ```
     #[proc_macro]
     pub fn xoxo(item:CompilerTokens) -> CompilerTokens {
         TokenStream::from(item).replace_atoms(|t|match t {
