@@ -16,6 +16,27 @@ use syn::spanned::Spanned;
         }).into()
     }
 
+    #[proc_macro_derive(ForceDefault)]
+    pub fn force_default (item:CompilerTokens) -> CompilerTokens {
+        let input: DeriveInput = syn::parse(item).unwrap();
+        let DeriveInput{attrs:_,vis:_,ident,generics,data} = input;
+        let (imp,typ,wher) = generics.split_for_impl();
+        let mut mults = vec![];
+        match data {
+            Data::Struct(data) => for (idx,field) in data.fields.iter().enumerate() {
+                let idx = Index::from(idx);
+                let name = field.ident.clone()
+                    .map(|a|a.into_token_stream())
+                    .unwrap_or(qt![#idx]);
+                mults.push(qt![#name:default()]);
+            }
+            _ => {}
+        }
+        qt!{impl #imp Default for #ident #typ #wher {
+            fn default() -> Self {Self{#(#mults),*}}
+        }}.into()
+    }
+
 
 // Force Name \\
 
