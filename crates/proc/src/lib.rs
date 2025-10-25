@@ -93,6 +93,27 @@ pub use convert_case;
         #[inline] fn is_string(&self,text:&str) -> bool {self.to_string().as_str() == text}
         #[inline] fn is_punct(&self,punct:char) -> bool {self.map_punct(move|x|x.as_char()==punct)}
 
+    }
+
+    #[ext(pub trait DekiOptTokenTreeExt)]
+    impl <'a> Option<&'a TokenTree> {
+
+        // Check Types
+        #[inline] fn is_any_punct(&self) -> bool {exit!{t=self}t.is_any_punct()}
+        #[inline] fn is_any_ident(&self) -> bool {exit!{t=self}t.is_any_ident()}
+        #[inline] fn is_any_group(&self) -> bool {exit!{t=self}t.is_any_group()}
+        #[inline] fn is_any_literal(&self) -> bool {exit!{t=self}t.is_any_literal()}
+
+        // Check Inner
+        #[inline] fn map_punct<O:Default,F:FnOnce(&Punct)->O>(&self,check:F) -> O {exit!{t=self}t.map_punct(check)}
+        #[inline] fn map_ident<O:Default,F:FnOnce(&Ident)->O>(&self,check:F) -> O {exit!{t=self}t.map_ident(check)}
+        #[inline] fn map_group<O:Default,F:FnOnce(&Group)->O>(&self,check:F) -> O {exit!{t=self}t.map_group(check)}
+        #[inline] fn map_literal<O:Default,F:FnOnce(&Literal)->O>(&self,check:F) -> O {exit!{t=self}t.map_literal(check)}
+
+        // Shortcuts
+        #[inline] fn is_numeric(&self) -> bool {exit!{t=self}t.is_numeric()}
+        #[inline] fn is_string(&self,text:&str) -> bool {exit!{t=self}t.is_string(text)}
+        #[inline] fn is_punct(&self,punct:char) -> bool {exit!{t=self}t.is_punct(punct)}
 
     }
 
@@ -135,30 +156,6 @@ pub use convert_case;
 // -- \\
 
 
-    #[ext(pub trait OptTreeExt)]
-    impl <'a> Option<&'a TokenTree> {
-        /// check if this is an ident, use .. && self.is_string(..) for a specific
-         fn is_ident(&self) -> bool {
-            exit!{tok = self}
-            tok.is_any_ident()
-        } 
-        /// dirty string check of the token
-        fn is_string(&self,text:&str) -> bool {
-            exit!{tok = self}
-            tok.is_string(text)
-        }
-        /// check if it's a numeric literal
-        fn is_numeric(&self) -> bool {
-            exit!{tok = self}
-            tok.is_numeric()
-        }
-        /// check if it's a certain punct
-        fn is_punct(&self,punct:char) -> bool {
-            exit!{tok = self}
-            tok.is_punct(punct)
-        }
-    }
-
 
 // Stream Handling \\
 
@@ -197,6 +194,14 @@ pub use convert_case;
 
     #[ext(pub trait TreeIterExt)]
     impl PeekIter {
+
+        fn collect_til_punct(&mut self,punct:char) -> Vec<TokenTree> {
+            let mut out = vec![];
+            while let Some(a) = self.next_if(|a|!a.is_punct(punct)){
+                out.push(a);
+            }
+            out
+        }
 
         /// skip until [Self::next()] isn't a [TokenTree::Punct]
         fn skip_puncts(&mut self,stoppers:&str) -> Vec<TokenTree> {
