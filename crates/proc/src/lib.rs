@@ -35,42 +35,6 @@ pub use convert_case;
 
 // Atomic Exts \\
 
-    #[ext(pub trait IdentExt)]
-    impl Ident { 
-        fn to_case(&self,case:Case) -> Ident {
-            Ident::new(&self.to_string().to_case(case),self.span())
-        }
-    }
-
-    #[ext(pub trait LiteralExt)]
-    impl Literal {
-        fn is_numeric(&self) -> bool {
-            exit!{first = self.to_string().chars().next()}
-            first.is_numeric()
-        }
-    }
-
-    #[ext(pub trait PunctExt)]
-    impl Punct {
-    
-    }
-
-    #[ext(pub trait DelimiterExt)]
-    impl Delimiter {
-        fn is_parenthesis(&self) -> bool {
-            if let Self::Parenthesis = self {true} else {false}
-        }        
-        fn is_brace(&self) -> bool {
-            if let Self::Brace = self {true} else {false}
-        }        
-        fn is_bracked(&self) -> bool {
-            if let Self::Bracket = self {true} else {false}
-        }
-        fn is_none(&self) -> bool {
-            if let Self::None = self {true} else {false}
-        }
-    }
-
 
 // Neat Token Iterator \\
 
@@ -81,55 +45,102 @@ pub use convert_case;
     #[derive(Default)]
     pub enum Check<T,M> {#[default] None, Some(T), Maybe(M)}
 
-    #[ext(pub trait TokenTreeExt)]
+
+
+
+// Token Tree Extension \\
+
+    macro_rules! is_any {
+        ($self:ident = $var:ident) => {match $self {Self::$var(_) => true, _ => false}};
+        (*$self:ident = $var:ident) => {match $self {Self::$var => true, _ => false}};
+    }
+
+    macro_rules! is_this {($self:ident = $check:ident) => {
+        match $self {Self::$var(v) => v , _ => false}
+    }}
+
+    macro_rules! unwrapper {($self:ident = $var:ident) => {
+        match $self {Self::$var(v) => v, _ => panic!{"deki-rs|proc: Risk Failed!"}}
+    }}
+
+    macro_rules! checker {($self:ident::$var:ident $block:expr) => {
+        match $self {Self::$var(v) => $block(v), _ => Default::default()}
+    }}
+
+    #[ext(pub trait DekiTokenTreeExt)]
     impl TokenTree {
-        /// check if this is an ident, use .. && self.is_string(..) for a specific
-        fn is_ident(&self) -> bool {
-            exit!{*TokenTree::Ident(_)=self}
-            true
-        }
-        /// dirty string check of the token
-        fn is_string(&self,text:&str) -> bool {
-            self.to_string().as_str() == text
-        }
-        /// check if it's a certain punct
-        fn is_punct(&self,punct:char) -> bool {
-            exit!{*TokenTree::Punct(p) = self}
-            p.as_char() == punct
-        }
-        /// check if it's a numeric literal
-        fn is_numeric(&self) -> bool {
-            exit!{*TokenTree::Literal(lit) = self}
-            lit.is_numeric()
-        }
-        /// get literal if you know it's one
-        fn risk_literal(self) -> Literal {
-            kill!{*Self::Literal(lit) = self}
-            lit
-        }
-        /// get literal if you know it's one
-        fn risk_ident(self) -> Ident {
-            kill!{*Self::Ident(idn) = self}
-            idn
-        }
-        /// get punct if you know it's one
-        fn risk_punct(self) -> Punct {
-            kill!{*Self::Punct(pct) = self}
-            pct
-        }
-        /// get group if you know it's one
-        fn risk_group(self) -> Group {
-            kill!{*Self::Group(grp) = self}
-            grp
+
+        // Check Types
+        #[inline] fn is_any_punct(&self) -> bool {is_any!(self = Punct)}
+        #[inline] fn is_any_ident(&self) -> bool {is_any!(self = Ident)}
+        #[inline] fn is_any_group(&self) -> bool {is_any!(self = Group)}
+        #[inline] fn is_any_literal(&self) -> bool {is_any!(self = Literal)}
+
+        // Check Unwraps
+        #[inline] fn unwrap_punct(self) -> Punct {unwrapper!(self = Punct)}
+        #[inline] fn unwrap_ident(self) -> Ident {unwrapper!(self = Ident)}
+        #[inline] fn unwrap_group(self) -> Group {unwrapper!(self = Group)}
+        #[inline] fn unwrap_literal(self) -> Literal {unwrapper!(self = Literal)}
+
+        // Check Inner
+        #[inline] fn map_punct<O:Default,F:FnOnce(&Punct)->O>(&self,check:F) -> O {checker!(self::Punct|v|(check)(v))}
+        #[inline] fn map_ident<O:Default,F:FnOnce(&Ident)->O>(&self,check:F) -> O {checker!(self::Ident|v|(check)(v))}
+        #[inline] fn map_group<O:Default,F:FnOnce(&Group)->O>(&self,check:F) -> O {checker!(self::Group|v|(check)(v))}
+        #[inline] fn map_literal<O:Default,F:FnOnce(&Literal)->O>(&self,check:F) -> O {checker!(self::Literal|v|(check)(v))}
+
+        // Shortcuts
+        #[inline] fn is_numeric(&self) -> bool {self.map_literal(move|x|x.is_numeric())}
+        #[inline] fn is_string(&self,text:&str) -> bool {self.to_string().as_str() == text}
+        #[inline] fn is_punct(&self,punct:char) -> bool {self.map_punct(move|x|x.as_char()==punct)}
+
+
+    }
+
+
+// Variants \\
+
+    #[ext(pub trait IdentExt)]
+    impl Ident { 
+        fn to_case(&self,case:Case) -> Ident {
+            Ident::new(&self.to_string().to_case(case),self.span())
         }
     }
+
+    #[ext(pub trait LiteralExt)]
+    impl Literal {
+        fn is_numeric(&self) -> bool {
+            match self.to_string().chars().next(){
+                Some(first) => first.is_numeric(),
+                _ => false
+            }
+        }
+        #[inline] fn try_int(&self) -> Result<LitInt> {parse2(self.into_token_stream())}
+        #[inline] fn try_float(&self) -> Result<LitFloat> {parse2(self.into_token_stream())}
+    }
+
+    #[ext(pub trait PunctExt)]
+    impl Punct {
+    
+    }
+
+    #[ext(pub trait DelimiterExt)]
+    impl Delimiter {
+        #[inline] fn is_parenthesis(&self) -> bool {is_any!(*self = Parenthesis)}        
+        #[inline] fn is_brace(&self) -> bool {is_any!(*self = Brace)}        
+        #[inline] fn is_bracket(&self) -> bool {is_any!(*self = Bracket)}
+        #[inline] fn is_none(&self) -> bool {is_any!(*self = None)}
+    }
+
+
+// -- \\
+
 
     #[ext(pub trait OptTreeExt)]
     impl <'a> Option<&'a TokenTree> {
         /// check if this is an ident, use .. && self.is_string(..) for a specific
          fn is_ident(&self) -> bool {
             exit!{tok = self}
-            tok.is_ident()
+            tok.is_any_ident()
         } 
         /// dirty string check of the token
         fn is_string(&self,text:&str) -> bool {
@@ -200,7 +211,7 @@ pub use convert_case;
         /// only progress iter if next is a numeric literal & return it
         fn next_if_num(&mut self) -> Option<Literal> {
             exit!{if !self.peek().is_numeric()}
-            self.next().map(|l|l.risk_literal())
+            self.next().map(|l|l.unwrap_literal())
         }
     
         /// 
