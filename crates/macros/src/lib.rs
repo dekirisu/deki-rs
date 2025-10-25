@@ -1,9 +1,21 @@
 use convert_case::Casing;
 use deki_core::*;
-use deki_proc::*;
+use deki_proc::{syn::{Data, DeriveInput, Index}, *};
 use proc_macro2::{Delimiter, Group, TokenStream, TokenTree};
 use proc_macro::TokenStream as CompilerTokens;
 use syn::spanned::Spanned;
+
+// Utils \\
+
+    #[proc_macro]
+    pub fn xoxo(item:CompilerTokens) -> CompilerTokens {
+        TokenStream::from(item).replace_atoms(|t|match t {
+            TokenTree::Ident(i) if i.to_string().as_str() == "X" => "true".ident_span(i.span()).into(),
+            TokenTree::Ident(i) if i.to_string().as_str() == "O" => "false".ident_span(i.span()).into(),
+            _ => t
+        }).into()
+    }
+
 
 // Force Name \\
 
