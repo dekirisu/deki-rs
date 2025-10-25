@@ -188,6 +188,14 @@ pub use convert_case;
         fn as_vec(self) -> Vec<TokenTree> {
             self.into_iter().collect()
         }
+
+        fn replace_atoms(self,func:fn(TokenTree)->TokenTree) -> Self {
+            Self::from_iter(self.into_iter().map(|a|match &a {
+                TokenTree::Group(g) => TokenTree::Group(Group::new(g.delimiter(),g.stream().replace_atoms(func))),
+                _ => func(a)
+            }))
+        }
+
     }
 
     pub type PeekIter = Peekable<IntoIter>;
