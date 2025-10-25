@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use convert_case::Casing;
 use deki_core::*;
-use deki_proc::{syn::{parse2, Data, DeriveInput, Generics, Index}, *};
+use deki_proc::{syn::{parse2, Generics}, *};
 use proc_macro2::{Delimiter, Group, TokenStream, TokenTree};
 use proc_macro::TokenStream as CompilerTokens;
 use syn::spanned::Spanned;
@@ -96,6 +98,78 @@ use syn::spanned::Spanned;
         }
 
         qt!( #new impl #gen_impl #trat #name #gen_typ #gen_where {#stream} ).into()
+    }
+
+    /// Alternative Syntax to attach functionality to type variants:
+    /// - atm: Return type has to impl Default
+    /// ```rust
+    /// enum Object {RedSphere, GreenCube}
+    /// match_fns!{
+    ///
+    ///     // 1. Define Methods - '&self' is assumed as parameter
+    ///     [Color]
+    ///     shape() -> &'static str;
+    ///     color(brightness:f32) -> &'static str;
+    ///
+    ///     // 2. Add Code
+    ///     [::RedSphere]
+    ///     shape: "sphere";
+    ///     color: if brightness > 0.5 {"bright-red"} else {"red"};
+    ///
+    ///     [::GreenCube]
+    ///     shape: "cube";
+    ///     color: "just-green";
+    ///
+    /// }
+    /// ```
+    #[proc_macro]
+    pub fn match_fns (item:CompilerTokens) -> CompilerTokens {
+        let stream: TokenStream = item.into();
+        let mut stream = stream.peek_iter();
+        let name = stream.next().unwrap().unwrap_group().stream();
+        let iter = stream.split_punct(';');
+
+        let mut funcs = Vec::new();
+        let mut matches = HashMap::<String,TokenStream>::new();
+        let mut current = qt![];
+
+        for tok in iter {
+            let mut toki = tok.peek_iter();
+            // Update Current Title
+            let title = toki.peek().and_then(|t|{
+                exit!{*TokenTree::Group(g) = t}
+                exit!{*Delimiter::Bracket = g.delimiter()}
+                Some(g.stream())
+            });
+            if let Some(title) = title {
+                toki.next();
+                current = title;
+            }
+            if current.is_empty() {
+                funcs.push(TokenStream::from_iter(toki));
+            } else {
+                let [func,b] = toki.split_punct(':').try_into().unwrap();
+                matches.entry(func.to_string()).or_default()
+                    .extend(qt!{#name #current => #b,});
+            }
+        }
+
+        let mut asdf = qt![];
+        for a in funcs {
+            let mut aiter = a.peek_iter();
+            exit!{bb = aiter.next()}
+            exit!{atr = aiter.next(),unwrap_group()}
+            let atr = atr.stream().peek_iter().split_punct(',');
+            next!{mchs = matches.remove(&bb.to_string())}
+            let more = TokenStream::from_iter(aiter);
+            asdf.extend(qt!(
+                pub fn #bb (&self #(,#atr)*) #more {
+                    match self { #mchs _ => default() }
+                }
+            ));
+        }
+
+        qt![impl #name {#asdf}].into()
     }
 
 
