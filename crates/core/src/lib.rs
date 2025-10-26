@@ -273,20 +273,31 @@ use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::
     }
 
 
-// Quick Constant \\
+// Macros \\
 
     /// create a constant struct and name it after itself
     #[macro_export]
     macro_rules! qonst {
         ($ty:ty: $($tt:tt)*) => {paste!{
-            pub const [<$ty:snake:upper>]: $ty = $ty {
-                $($tt)*
-            };
+            pub const [<$ty:snake:upper>]: $ty = $ty {$($tt)*};
         }};
         ($ty:ident::$($tt:tt)*) => {paste!{
             pub const [<$ty:snake:upper>]: $ty = $ty::$($tt)*;
         }};
     }
+
+    #[macro_export]
+    macro_rules! trait_alias {($trait:ident:$($tt:tt)*)=>{
+        pub trait $trait: $($tt)* {}
+        impl <C:$($tt)*> $trait for C {}
+    }}
+
+    #[macro_export]
+    macro_rules! default {($name:ty = $($tt:tt)*) => {
+        impl Default for $name {
+            fn default() -> Self {$($tt)*}
+        }
+    }}
 
 
 // EOF \\
