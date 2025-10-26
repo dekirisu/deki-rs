@@ -33,9 +33,6 @@ pub use convert_case;
     }
 
 
-// Atomic Exts \\
-
-
 // Neat Token Iterator \\
 
     /// Token Level Return
@@ -46,8 +43,6 @@ pub use convert_case;
     pub enum Check<T,M> {#[default] None, Some(T), Maybe(M)}
 
 
-
-
 // Token Tree Extension \\
 
     macro_rules! is_any {
@@ -55,12 +50,8 @@ pub use convert_case;
         (*$self:ident = $var:ident) => {match $self {Self::$var => true, _ => false}};
     }
 
-    macro_rules! is_this {($self:ident = $check:ident) => {
-        match $self {Self::$var(v) => v , _ => false}
-    }}
-
-    macro_rules! unwrapper {($self:ident = $var:ident) => {
-        match $self {Self::$var(v) => v, _ => panic!{"deki-rs|proc: Risk Failed!"}}
+    macro_rules! unwrpr {($self:ident $(.$meth:ident($($tt:tt)*))* = $var:ident) => {
+        match $self $(.$meth($($tt)*))* {TokenTree::$var(v) => v, _ => panic!{"deki-rs|proc: Risk Failed!"}}
     }}
 
     macro_rules! checker {($self:ident::$var:ident $block:expr) => {
@@ -77,10 +68,10 @@ pub use convert_case;
         #[inline] fn is_any_literal(&self) -> bool {is_any!(self = Literal)}
 
         // Check Unwraps
-        #[inline] fn unwrap_punct(self) -> Punct {unwrapper!(self = Punct)}
-        #[inline] fn unwrap_ident(self) -> Ident {unwrapper!(self = Ident)}
-        #[inline] fn unwrap_group(self) -> Group {unwrapper!(self = Group)}
-        #[inline] fn unwrap_literal(self) -> Literal {unwrapper!(self = Literal)}
+        #[inline] fn unwrap_punct(self) -> Punct {unwrpr!(self = Punct)}
+        #[inline] fn unwrap_ident(self) -> Ident {unwrpr!(self = Ident)}
+        #[inline] fn unwrap_group(self) -> Group {unwrpr!(self = Group)}
+        #[inline] fn unwrap_literal(self) -> Literal {unwrpr!(self = Literal)}
 
         // Check Inner
         #[inline] fn map_punct<O:Default,F:FnOnce(&Punct)->O>(&self,check:F) -> O {checker!(self::Punct|v|(check)(v))}
@@ -103,6 +94,12 @@ pub use convert_case;
         #[inline] fn is_any_ident(&self) -> bool {exit!{t=self}t.is_any_ident()}
         #[inline] fn is_any_group(&self) -> bool {exit!{t=self}t.is_any_group()}
         #[inline] fn is_any_literal(&self) -> bool {exit!{t=self}t.is_any_literal()}
+
+        // Check Unwraps
+        #[inline] fn unwrap_punct(self) -> &'a Punct {unwrpr!(self.unwrap() = Punct)}
+        #[inline] fn unwrap_ident(self) -> &'a Ident {unwrpr!(self.unwrap() = Ident)}
+        #[inline] fn unwrap_group(self) -> &'a Group {unwrpr!(self.unwrap() = Group)}
+        #[inline] fn unwrap_literal(self) -> &'a Literal {unwrpr!(self.unwrap() = Literal)}
 
         // Check Inner
         #[inline] fn map_punct<O:Default,F:FnOnce(&Punct)->O>(&self,check:F) -> O {exit!{t=self}t.map_punct(check)}
