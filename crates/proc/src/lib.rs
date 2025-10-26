@@ -18,6 +18,35 @@ pub use convert_case;
     };
     pub use syn::spanned::Spanned;
 
+// Quick Implement Prepare \\
+
+    /// Quickly add a method to a Type
+    /// - `#[imp(Struct)]`: for a owned Type
+    /// - `#[imp(Struct|Trait)]`: to impl a singe-method trait
+    /// - `#[imp(Struct|*)]`: for a foreign Type (generates a new trait)
+    pub fn imp (attr:TokenStream,stream:TokenStream) -> TokenStream {
+        let mut split = attr.peek_iter().split_punct('|');
+        let mut iter = split.remove(0).peek_iter();
+
+        let name = iter.next().unwrap();
+        let gens: Generics = parse2(TokenStream::from_iter(iter)).unwrap();
+        let (gen_impl,gen_typ,gen_where) = gens.split_for_impl();
+
+        let mut trat = qt!();
+        let mut new = qt!();
+        if let Some(tok) = split.pop() {
+            if tok.to_string().as_str() == "*" {
+                let fn_name = stream.clone().into_iter().skip(1).next().unwrap().to_string().to_case(Case::Pascal);
+                let ident = format!("{name}{fn_name}Ext").ident_span(tok.span());
+                new.extend(qt!(#[ext(pub trait #ident)]));
+            } else {
+                trat.extend(qt!(#tok for));
+            }
+        }
+
+        qt!( #new impl #gen_impl #trat #name #gen_typ #gen_where {#stream} ).into()
+    }
+
 
 // String <> Ident \\
 
