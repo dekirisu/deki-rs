@@ -83,7 +83,7 @@ use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::
             self.keys.iter().enumerate().find_map(|(id,k)|if key==k {Some(id)} else {None})
         }
         /// read-only reference iterator
-        pub fn iter(&self) -> Zip<Iter<K>,Iter<V>> {
+        pub fn iter(&'_ self) -> Zip<Iter<'_, K>,Iter<'_, V>> {
             zip(self.keys.iter(),self.value.iter())
         }
         /// consuming iterator
