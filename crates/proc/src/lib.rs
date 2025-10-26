@@ -113,6 +113,14 @@ pub use convert_case;
         #[inline] fn is_string(&self,text:&str) -> bool {self.to_string().as_str() == text}
         #[inline] fn is_punct(&self,punct:char) -> bool {self.map_punct(move|x|x.as_char()==punct)}
 
+        // Utils \|
+
+        /// convert to [TokenStream] or get inner tokens of a [Group]
+        #[inline] fn inner_tokens(&self) -> TokenStream {match self{
+            TokenTree::Group(g) => g.stream(),
+            _ => self.to_token_stream()
+        }}
+
     }
 
     #[ext(pub trait DekiOptTokenTreeExt)]
