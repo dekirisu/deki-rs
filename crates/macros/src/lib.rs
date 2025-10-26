@@ -120,7 +120,7 @@ use syn::spanned::Spanned;
     /// match_fns!{
     ///
     ///     // 1. Define Methods - '&self' is assumed as parameter
-    ///     [Color]
+    ///     [Object]
     ///     shape() -> &'static str;
     ///     color(brightness:f32) -> &'static str;
     ///
@@ -177,7 +177,7 @@ use syn::spanned::Spanned;
             let more = TokenStream::from_iter(aiter);
             asdf.extend(qt!(
                 pub fn #bb (&self #(,#atr)*) #more {
-                    match self { #mchs _ => default() }
+                    match self { #mchs _ => Default::default() }
                 }
             ));
         }
