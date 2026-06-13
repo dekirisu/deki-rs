@@ -1,6 +1,6 @@
 [package]
 name = "deki_macros"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 
 authors = ["Dekirisu <dekirisu@gmail.com>"]
@@ -14,3 +14,9 @@ proc-macro = true
 [dependencies]
 deki_core.workspace = true
 deki_proc.workspace = true
+derive_preset = "0.1"
+convert_case.workspace = true
+paste.workspace = true
+quote.workspace = true
+syn.workspace = true
+proc-macro2.workspace = true

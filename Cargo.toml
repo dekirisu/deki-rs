@@ -10,7 +10,6 @@ repository = "https://github.com/dekirisu/deki-rs/"
 
 [dependencies]
 deki_core.workspace = true
-deki_derive.workspace = true
 deki_macros.workspace = true
 deki_lerp = {workspace=true,optional=true}
 deki_proc = {workspace=true,optional=true}
@@ -24,21 +23,22 @@ default-features = false
 path = "crates/proc"
 version = "0.2.0"
 
-[workspace.dependencies.deki_derive]
-path = "crates/derive"
-version = "0.1.2"
-
 [workspace.dependencies.deki_lerp]
 path = "crates/lerp"
 version = "0.1.0"
 
 [workspace.dependencies.deki_macros]
 path = "crates/macros"
-version = "0.1.1"
+version = "0.2.0"
 
 [workspace.dependencies]
 maflow = "0.1"
 extension-traits = "2.0.0"    
+convert_case = "0.6"
+paste = "1.0"
+quote = "1.0"
+syn = "2.0"
+proc-macro2 = "1.0"
 
 [features]
 default = ["random","approx","lerp"]

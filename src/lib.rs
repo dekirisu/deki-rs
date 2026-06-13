@@ -1,4 +1,3 @@
-pub use deki_derive::*;
 pub use deki_core::*;
 pub use deki_macros::*;
 
