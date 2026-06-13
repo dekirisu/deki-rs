@@ -1,67 +1,351 @@
-<h1 align="center">🦀 My Rusty Base 🦀</h1>
-<p align="center">
-    <a href="https://github.com/dekirisu/deki-rs" style="position:relative"><img src="https://img.shields.io/badge/github-dekirisu/deki-ee6677"></a>
-    <a href="https://crates.io/crates/deki" style="position:relative"><img src="https://img.shields.io/crates/v/deki"></a>
-</p>
+# deki-rs
 
-## What is this?
-- A collection of crates, functions and renames I tend to use and rate as beeing 'general purpose'.
-- A base where I don't have to look up how things works.
+[![GitHub](https://img.shields.io/badge/github-dekirisu/deki-ee6677)](https://github.com/dekirisu/deki-rs/)
+[![crates.io](https://img.shields.io/crates/v/deki_macros)](https://crates.io/crates/deki_macros)
 
-> [!NOTE]
-> This mainly exists so I can depend on it quick, easy and anywhere.
+A personal Rust utility crate — a curated bundle of helper types, traits, macros, and re-exports that change how you write Rust. Less boilerplate, more flow.
 
-> [!IMPORTANT]
-> Since this crate doesn't have a specific purpose, it may change a lot between 'minor' versions.
-> That said, I'll follow semantic versioning of course! ✨
+---
 
-## What does it do?
-- add `PhantomData` alias `Ghost`
-- re-export [maflow](https://github.com/dekirisu/maflow): all `*`
-- re-export [type_cell](https://github.com/dekirisu/type_cell): all `*`
-- re-export [buns](https://github.com/dekirisu/buns): `self` and `sandwich`
-- re-export [derive-new](https://github.com/nrc/derive-new): `new` as `Constructor`
-    - e.g. `#[derive(Constructor)] struct AStruct{field:u32}` -> `AStruct::new(2);`
-- re-export [extension-traits](https://github.com/danielhenrymantilla/ext-trait.rs): `extension` as `ext`
-    - e.g. `#[ext(trait F32Ext)] impl f32 {fn plus(self,rhs:f32)->f32{self+rhs}}` -> `4.0.plus(4.0);`
-- re-export [derive_more](https://github.com/JelteF/derive_more): `self` as `derive_more` and `drv`
-    - e.g. `#[derive(drv::Deref)] struct AStruct(#[deref]u32);`
-- derive presets, by using [derive_preset](https://github.com/dekirisu/derive_preset):
-    - `#[hashable(..)]` = `#[derive(PartialEq,Eq,Hash,Clone,Copy,..)]`
-    - `#[serde(..)]` = `#[derive(Serialize,Deserialize,Clone,..)]`
-    - `#[serde_hash(..)]` = `#[derive(Serialize,Deserialize,PartialEq,Eq,Hash,Clone,Copy,..)]`
-    - `#[deref(..)]` = `#[derive(drv::Deref,drv::DerefMut,..)]`
-    - Note: Assuming any `Hash` derivator is small and therefore fine to be copied!
-- auto-impl trait marker `Syncable` for anything implementing `'static+Send+Sync`
-    - mainly used as 'rename' to use in trait bounds
-- auto-impl trait `DefaultClear` for anything implementing `Default`, id adds `.clear()` to set it back to default
-- auto-impl trait `Lerpable` for any type with necessary maths to perform linear interpolation
-    - e.g. `3.0.lerp(4.0,0.1)` or any future type you impl maths for
-- auto-impl trait `LerpableDeref` for any type that derefs to a type with necessary maths to perform linear interpolation
-    - e.g. `#[deref] struct AStruct(#[deref]f32);` -> `AStruct(3.0).lerp(AStruct(4.0),0.1)`
-- extend `f32` by `.smooth()` to apply cheap ease-in and -out (smooth-step) if within 0..=1
-- extend `f32` by `.clamp_unit()` = `.clamp(0.0,1.0)`
-- extend `Ramge<T>` & `RangeInclusive<T>` by `.add(T)` to offset it
-- macro `qonst!` (quick const): set a type and a value, name is automatically set to the type name in uppercase
-- (optional) re-export [fastrand](https://github.com/smol-rs/fastrand): `self` as `random`
-    - extend `Vec` by `.random()`
-- (optional) re-export [fastapprox](https://github.com/loony-bean/fastapprox-rs): all `*` (modified) as `approx`
-    - extend `f32` by `.{operation}_ca` (ca = circa (latin))
+## What changes when you use `deki`?
 
-## Synergies
-A struct with `PhantomData`:
-```rust
-#[derive(Constructor)]
-pub struct AStruct<T>(u32,#[new(default)]Ghost<T>)
-// Construct somewhere:
-AStruct::<String>::new(3);
+| Without `deki` | With `deki` |
+|---|---|
+| `std::marker::PhantomData` | `Ghost` |
+| `&'static str` | `Str` |
+| Manual enum cycling | `#[derive(Cycle)]` + `.cycle_next()` / `.cycle_prev()` |
+| Manual lerp boilerplate | `.lerp()`, `.glerp()`, `.lerp_qucy()`, `.sterp()` |
+| Approximate math calls | `x.sin_ca()`, `x.exp_ca()`, etc. |
+| `impl Default for T { fn default() -> Self { Self { a: Default::default(), b: Default::default() } } }` | `ForceDefault` derive |
+| `#[derive(Debug, Clone, PartialEq, Eq, Hash)]` | `hashable` preset |
+
+---
+
+## Features
+
+| Feature | Default | What it adds |
+|---|---|---|
+| `random` | ✅ | `fastrand` re-exports, `f32r()`, `Vec::random()` |
+| `approx` | ✅ | Fast-but-inaccurate `sin_ca()`, `cos_ca()`, `exp_ca()`, `sqrt_ca()`, `pow_ca()`, `log_ca()` |
+| `lerp` | ✅ | Linear / gated / cyclic / step interpolation traits and methods |
+| `proc` | — | Proc-macro support (string→ident, token stream helpers) |
+
+```toml
+[dependencies]
+deki = { version = "0.3", default-features = false, features = ["random", "lerp"] }
 ```
-Quick smooth interpolation of a struct with a f32:
+
+---
+
+## deki_core — Runtime Utilities
+
+### Aliases
+
+Shorter names for common types and crates:
+
+| Name | Is |
+|---|---|
+| `Ghost` | `PhantomData` |
+| `Str` | `&'static str` |
+| `Constructor` | `derive_new::new` |
+| `ext` | `extension_traits::extension` |
+| `drv` | `derive_more` |
+| `sandwich` | `buns::sandwich` |
+
+Plus re-exports of `buns`, `type_cell`, and `maflow`.
+
+### `Syncable` — `'static + Send + Sync` in One Word
+
+Use as a bound instead of writing `'static + Send + Sync` everywhere:
+
 ```rust
-#[deref(Constructor,Clone)]
-struct AStruct {a:u32,#[deref]b:f32}
-// run:
-let from = AStruct::new(0,0.);
-let to = AStruct::new(0,0.);
-from.lerp(to,progress.smooth())
+fn spawn<T: Syncable>(val: T) { ... }
 ```
+
+### `DefaultClear` — Clear Any Default Type
+
+Adds `.clear()` to any `Default` type:
+
+```rust
+let mut buf = Vec::new();
+buf.clear();  // standard
+let mut map = HashMap::new();
+map.clear();  // standard
+
+// But also works for types where you just want to reset to default
+let mut state = MyState::default();
+state.clear();  // resets to MyState::default()
+```
+
+### `StackMap` — Insertion-Ordered Key-Value Map
+
+A map that preserves insertion order and allows duplicate keys:
+
+```rust
+let mut map = StackMap::<&str, i32>::new();
+*map.entry("count") = 42;
+assert_eq!(*map.entry("count"), 42);
+
+for (key, value) in map.iter() { ... } // insertion order
+```
+
+Keys are stored in a `Vec` — linear search, but preserves order and allows duplicates.
+
+### Cycling Math
+
+#### `#[derive(Cycle)]` — Auto-Cycling Enums
+
+Generates `cycle_next()` and `cycle_prev()` for enums:
+
+```rust
+#[derive(Cycle)]
+enum Direction { North, East, South, West }
+
+let mut dir = Direction::North;
+dir = dir.cycle_next();  // East
+dir = dir.cycle_prev();  // North
+```
+
+#### `add_qucy` / `sub_qucy` — Modular Arithmetic
+
+Fast modular arithmetic on any number type (assumes current value is in range):
+
+```rust
+// Circular buffer: advance index, wrap to 0 at capacity
+let idx: usize = 99usize.add_qucy(1, 0, 100);  // 0
+
+// Move backwards through a 10-slot inventory, wrapping to the end
+let slot: i32 = 2i32.sub_qucy(3, 0, 10);  // 9
+```
+
+#### `mul_f32` — Multiply Integer by f32
+
+```rust
+let count: i32 = 5.mul_f32(2.5);  // 13 (rounded)
+```
+
+### Interpolation (`lerp` feature)
+
+#### Linear Interpolation
+
+```rust
+use deki::lerp::*;
+
+let val: f32 = 0.0.lerp(10.0, 0.5);       // 5.0
+let val: i32 = 0i32.lerp(100, 0.3);       // generic
+```
+
+#### Gated Lerp — Snap When Close
+
+```rust
+let mut val = 0.0f32;
+let arrived = val.glerp(10.0, 0.1, 0.5);  // snaps when within 0.5 of target
+```
+
+#### Cyclic Lerp — Auto-Choose Shortest Direction
+
+```rust
+use deki::lerp::Clerpable;
+
+let val: f32 = 0.0.lerp_qucy(0.9, 0.1, 0.0, 1.0);
+// Result: 0.9 (not -0.1) — picks the shorter path
+```
+
+#### Step Interpolation
+
+```rust
+let mut val = 0.0f32;
+let arrived = val.sterp(10.0, 2.0);  // moves 2.0 per call, true when arrived
+```
+
+### Approximate Math (`approx` feature)
+
+Faster but less precise than standard math:
+
+```rust
+let x = 1.5f32;
+x.sin_ca();   // approx sine
+x.cos_ca();   // approx cosine
+x.exp_ca();   // approx exponential
+x.sqrt_ca();  // approx square root
+x.log_ca(2.0); // approx log base 2
+x.pow_ca(3.0); // approx power
+```
+
+### Randomness (`random` feature)
+
+```rust
+use deki::random::*;
+
+let val: f32 = f32r(0.0..1.0);
+let random_item = my_vec.random();
+```
+
+### Helper Macros
+
+#### `qonst!` — Named Constants
+
+Creates a `pub const` named after the type, without requiring `Default`:
+
+```rust
+qonst!(Vec3: x: 1.0, y: 2.0, z: 3.0);
+// => pub const VEC3: Vec3 = Vec3 { x: 1.0, y: 2.0, z: 3.0 };
+
+qonst!(Direction::North);
+// => pub const DIRECTION: Direction = Direction::North;
+```
+
+#### `trait_alias!` — Trait Aliases
+
+```rust
+trait_alias!(MyTrait: Clone + Send + Sync);
+// => pub trait MyTrait: Clone + Send + Sync {}
+// => impl<C: Clone + Send + Sync> MyTrait for C {}
+```
+
+#### `default!` — Shorthand Default
+
+```rust
+default!(MyStruct = Self { a: 0, b: Default::default() });
+// => impl Default for MyStruct { fn default() -> Self { Self { a: 0, b: Default::default() } } }
+```
+
+### Easing
+
+```rust
+let t = 0.5f32;
+let eased = t.smooth();  // smoothstep: t*t*(3-2*t)
+```
+
+---
+
+## deki_macros — Proc Macros
+
+### Derive Macros
+
+#### `#[derive(Cycle)]`
+
+Generates `cycle_next()` and `cycle_prev()` for enums. Works on unit variants only.
+
+```rust
+#[derive(Cycle)]
+enum Color { Red, Green, Blue }
+```
+
+#### `#[derive(ForceDefault)]`
+
+Generates `Default` by calling `.default()` on each field:
+
+```rust
+#[derive(ForceDefault)]
+struct Config { timeout: u32, name: String }
+// => Default produces Config { timeout: 0, name: String::default() }
+```
+
+### Preset Derives (via `derive_preset`)
+
+```rust
+derive_preset::create!{
+    hashable    "PartialEq,Eq,Hash,Clone,Copy"
+    serde       "Serialize,Deserialize,Clone"
+    serde_hash  "Serialize,Deserialize,PartialEq,Eq,Hash,Clone,Copy"
+    deref       "Deref,DerefMut"
+}
+```
+
+### `xoxo!` — Bool Pattern Matching
+
+```rust
+xoxo!{match [true, false, true] {
+    [O, O, O] => "all false",
+    [X, O, X] => "first and last true",
+    [_, _, _] => "default",
+}}
+```
+
+### `quimp!` — Quick Trait Implementation
+
+For traits with a single required method:
+
+```rust
+quimp!{MyWrapper
+    fn clone(&self) -> Self { Self::new(self.0.clone()) };
+    fn default() -> Self { Self::new(42) };
+}
+```
+
+### `#[imp(...)]` — Attach Methods to Types
+
+```rust
+#[imp(MyStruct)]
+fn new(value: i32) -> Self { Self { value } }
+
+#[imp(MyStruct|Clone)]
+fn clone(&self) -> Self { Self::new(self.value) }
+```
+
+For foreign types, use `*` to auto-generate a trait:
+
+```rust
+#[imp(String|*)]
+fn trim_all(&self) -> Self { self.trim().to_string() }
+// Generates: trait StringTrimAllExt { fn trim_all(&self) -> Self; }
+// and impls it for String
+```
+
+### `match_fns!` — Declarative Enum Methods
+
+```rust
+enum Object { RedSphere, GreenCube }
+
+match_fns!{
+    [Object]
+    shape() -> &'static str;
+    color(brightness: f32) -> &'static str;
+
+    [::RedSphere]
+    shape: "sphere";
+    color: if brightness > 0.5 { "bright-red" } else { "red" };
+
+    [::GreenCube]
+    shape: "cube";
+    color: "just-green";
+}
+```
+
+### `foname!` — Name Mangling
+
+Converts identifiers to different cases:
+
+```rust
+foname!{ my_function_name@snake }   // my_function_name
+foname!{ my_function_name@camel }   // myFunctionName
+foname!{ my_function_name@scream }  // MY_FUNCTION_NAME
+foname!{ my_function_name@flat }    // myfunctionname
+foname!{ my_function_name@upper }   // MYFUNCTIONNAME
+```
+
+---
+
+## Commit Conventions
+
+Commit messages use animal emojis to denote change type — yes, really. It's just for fun.
+
+| Emoji | Animal | Meaning |
+|---|---|---|
+| 🐤 | chick | **Add** — new code, features, macros, traits |
+| 🐋 | whale | **Dependency / version** — version bumps, optional deps, semver |
+| 🐍 | snake | **Functional refactor** — changes behavior or signatures |
+| 🦎 | lizard | **Structural refactor** — code moves, reorg, no behavior change |
+| 🦉 | owl | **Docs** — README, documentation |
+| 🐞 | bug | **Fix** — bug fixes |
+| 🐇 | rabbit | **Tests** — adding tests |
+| 🐣 | chickling | **Birth** — new crate |
+| 🐝 | bee | **Merge** — merge code between crates |
+| 🐜 | ant | **Cleanup** — tidying, removing dead code |
+
+---
+
+## License
+
+Dual licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE).
