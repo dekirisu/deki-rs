@@ -1,10 +1,15 @@
-use proc_macro::TokenStream as CompilerTokens;
-use deki_core::proc::syn::Index;
-use deki_core::proc::syn;
+use std::collections::HashMap;
+
+use convert_case::Casing;
+use deki_core::proc::{
+    syn::{parse2, Generics, Index},
+    Delimiter, Group, TokenStream, TokenTree,
+    *,
+};
 use deki_core::*;
-use deki_core::proc::*;
+use proc_macro::TokenStream as CompilerTokens;
 use quote::quote as qt;
-use syn::{parse_macro_input, Data, DeriveInput};
+use syn::{parse_macro_input, Data, DeriveInput, spanned::Spanned};
 
 derive_preset::create!{
     hashable    "PartialEq,Eq,Hash,Clone,Copy"
@@ -61,14 +66,6 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         fn default() -> Self {Self{#(#mults),*}}
     }}.into()
 }
-
-use std::collections::HashMap;
-
-use convert_case::Casing;
-use deki_core::*;
-use deki_core::proc::syn::{parse2, Generics};
-use proc_macro2::{Delimiter, Group, TokenStream, TokenTree};
-use syn::spanned::Spanned;
 
 // Random Utils \\
 

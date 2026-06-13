@@ -1,7 +1,9 @@
+use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::Iter, vec::IntoIter};
+
+pub use buns;
+pub use derive_more;
 pub use maflow::*;
 pub use type_cell::*;
-pub use derive_more;
-pub use buns;
 
 
 // Renames \\
@@ -35,8 +37,6 @@ pub use buns;
 
 
 // Extensions  \\
-use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::Iter, vec::IntoIter};
-
     #[ext(pub trait RangeOffset)]
     impl <Idx:Clone+Add<Output=Idx>> RangeInclusive<Idx> {
         fn offset(&self,rhs:Idx) -> Self {

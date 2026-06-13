@@ -1,8 +1,9 @@
 use crate::*;
-use std::ops::{Add, Mul, Sub};
-mod relative; pub use relative::*;
-mod absolute; pub use absolute::*;
-pub use relative::Clerpable;
+
+mod absolute;
+mod relative;
+
+pub use {absolute::*, relative::Clerpable, relative::*};
 
 // Goodies \\
 
