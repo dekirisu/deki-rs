@@ -1,6 +1,7 @@
 use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::Iter, vec::IntoIter};
 
 pub use buns;
+#[cfg(feature = "derive_more")]
 pub use derive_more;
 pub use maflow::*;
 pub use type_cell::*;
@@ -11,6 +12,7 @@ pub use type_cell::*;
     pub use std::marker::PhantomData as Ghost;
     pub use derive_new::new as Constructor;
     pub use extension_traits::extension as ext;
+#[cfg(feature = "derive_more")]
     pub use derive_more as drv;
     pub use buns::sandwich;
     pub type Str = &'static str;
