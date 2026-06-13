@@ -1,5 +1,5 @@
-# deki_macros
+# deki_core
 
-Various macros for daily Rust use.
+A collection of helper types, traits, and utilities.
 
 Part of [deki-rs](https://github.com/dekirisu/deki-rs). See the [root README](https://github.com/dekirisu/deki-rs/blob/main/README.md) for full docs.
