@@ -235,7 +235,7 @@ use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::
     /// cheaper but inaccurate math implementations
     #[cfg(feature="approx")]
     pub mod approx {
-        use std::f32::consts::PI;
+        use std::f32::consts::{E, PI};
         use fastapprox::faster as approx;
 
         #[inline]
@@ -248,8 +248,8 @@ use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::
         pub fn exp(a:f32) -> f32 {approx::exp(a)}
         #[inline]
         pub fn log(a:f32,b:f32) -> f32 { 
-            if b==2. {approx::log2(a)} 
-            else if b==2.72 {approx::ln(a)} 
+            if (b - 2.).abs() < 1e-3 {approx::log2(a)} 
+            else if (b - E).abs() < 1e-3 {approx::ln(a)} 
             else {a.log(b)}
         }
         #[inline]
