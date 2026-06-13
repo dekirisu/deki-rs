@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use convert_case::Casing;
+use deki_core::proc::convert_case::Casing;
 use deki_core::proc::{
     syn::{parse2, Generics, Index},
     Delimiter, Group, TokenStream, TokenTree,

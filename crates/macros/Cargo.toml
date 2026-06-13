@@ -14,7 +14,6 @@ proc-macro = true
 [dependencies]
 deki_core = { workspace = true, features = ["proc"] }
 derive_preset = "0.1"
-convert_case.workspace = true
 paste = "1.0"
 quote.workspace = true
 syn.workspace = true
