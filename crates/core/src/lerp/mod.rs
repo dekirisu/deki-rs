@@ -1,7 +1,8 @@
-use deki_core::*;
+use crate::*;
 use std::ops::{Add, Mul, Sub};
 mod relative; pub use relative::*;
 mod absolute; pub use absolute::*;
+pub use relative::Clerpable;
 
 // Goodies \\
 

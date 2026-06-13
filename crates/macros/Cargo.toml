@@ -12,8 +12,7 @@ repository = "https://github.com/dekirisu/deki-rs/"
 proc-macro = true
 
 [dependencies]
-deki_core.workspace = true
-deki_proc.workspace = true
+deki_core = { workspace = true, features = ["proc"] }
 derive_preset = "0.1"
 convert_case.workspace = true
 paste.workspace = true

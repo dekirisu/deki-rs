@@ -1,4 +1,5 @@
 use crate::*;
+use std::ops::Mul;
 
 // Linear Interpolation \\
 

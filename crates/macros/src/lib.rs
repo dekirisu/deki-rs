@@ -1,5 +1,9 @@
 use proc_macro::TokenStream as CompilerTokens;
-use deki_proc::{syn::Index, *};
+use deki_core::proc::syn::Index;
+use deki_core::proc::syn;
+use deki_core::*;
+use deki_core::proc::*;
+use quote::quote as qt;
 use syn::{parse_macro_input, Data, DeriveInput};
 
 derive_preset::create!{
@@ -62,7 +66,7 @@ use std::collections::HashMap;
 
 use convert_case::Casing;
 use deki_core::*;
-use deki_proc::syn::{parse2, Generics};
+use deki_core::proc::syn::{parse2, Generics};
 use proc_macro2::{Delimiter, Group, TokenStream, TokenTree};
 use syn::spanned::Spanned;
 
@@ -150,7 +154,7 @@ use syn::spanned::Spanned;
     pub fn imp (attr:CompilerTokens,item:CompilerTokens) -> CompilerTokens {
         let item: TokenStream = item.into();
         let attr: TokenStream = attr.into();
-        deki_proc::imp(attr,item).into()
+        deki_core::proc::imp(attr,item).into()
     }
 
     /// Alternative Syntax to attach functionality to type variants:

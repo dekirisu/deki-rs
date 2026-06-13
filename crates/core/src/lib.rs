@@ -384,4 +384,13 @@ use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::
         }
     }
 
+
+// Lerp Module \\
+#[cfg(feature = "lerp")]
+pub mod lerp;
+
+// Proc Module \\
+#[cfg(feature = "proc")]
+pub mod proc;
+
 // EOF \\
