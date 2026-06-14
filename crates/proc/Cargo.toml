@@ -1,0 +1,17 @@
+[package]
+name = "deki_proc"
+version = "0.3.0"
+edition = "2024"
+
+authors = ["Dekirisu <dekirisu@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Proc-macro helper utilities for deki-rs"
+repository = "https://github.com/dekirisu/deki-rs/"
+
+[dependencies]
+convert_case = "0.6"
+extension-traits.workspace = true
+maflow.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+syn.workspace = true

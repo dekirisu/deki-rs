@@ -10,9 +10,6 @@ pub use derive_more;
 #[cfg(feature = "lerp")]
 pub mod lerp;
 
-#[cfg(feature = "proc")]
-pub mod proc;
-
 pub mod collections;
 
 

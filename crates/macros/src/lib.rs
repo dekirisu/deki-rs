@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
-use deki_core::proc::convert_case::Casing;
-use deki_core::proc::{
+use deki_proc::convert_case::Casing;
+use deki_proc::{
     syn::{parse2, Generics, Index},
     Delimiter, Group, TokenStream, TokenTree,
     *,
 };
-use deki_core::*;
+use deki_proc::StringProcExt;
+use maflow::*;
 use proc_macro::TokenStream as CompilerTokens;
 use quote::quote as qt;
 use syn::{parse_macro_input, Data, DeriveInput, spanned::Spanned};
@@ -35,7 +36,7 @@ pub fn cycle(input:CompilerTokens) -> CompilerTokens {
             }
 
             qt!{
-                impl #gimpl Cycle for #ident #gtype #gwhere {
+                impl #gimpl ::deki_core::Cycle for #ident #gtype #gwhere {
                     fn cycle_next(&self) -> Self {match self {#front}}
                     fn cycle_prev(&self) -> Self {match self {#back}}
                 }
@@ -75,12 +76,14 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
     ///
     /// Meant to be used in bool matches:
     /// ```rust
-    /// xoxo!{match [true,false,true] {
+    /// use deki_macros::xoxo;
+    /// let result = xoxo!{match [true,false,true] {
     ///     [O,O,O] => "nope",
     ///     [O,O,X] => "nope",
     ///     [X,O,X] => "YEP!",
     ///     [_,_,_] => "nope"
-    /// }}
+    /// }};
+    /// assert_eq!(result, "YEP!");
     /// ```
     #[proc_macro]
     pub fn xoxo(item:CompilerTokens) -> CompilerTokens {
@@ -97,10 +100,16 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
     ///
     /// # Usage
     /// ```rust
-    /// quimp!{StructName
+    /// use deki_macros::quimp;
+    ///
+    /// struct Wrapper(i32);
+    /// impl Wrapper { fn new(v:i32) -> Self { Self(v) } }
+    ///
+    /// quimp!{Wrapper
     ///    fn clone(&self) -> Self {Self::new(self.0)};
     ///    fn default() -> Self {Self::new(100)};
     /// }
+    /// assert_eq!(Wrapper::default().0, 100);
     /// ```
     #[proc_macro]
     pub fn quimp (item:CompilerTokens) -> CompilerTokens {
@@ -151,12 +160,13 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
     pub fn imp (attr:CompilerTokens,item:CompilerTokens) -> CompilerTokens {
         let item: TokenStream = item.into();
         let attr: TokenStream = attr.into();
-        deki_core::proc::imp(attr,item).into()
+        deki_proc::imp(attr,item).into()
     }
 
     /// Alternative Syntax to attach functionality to type variants:
     /// - atm: Return type has to impl Default
     /// ```rust
+    /// use deki_macros::match_fns;
     /// enum Object {RedSphere, GreenCube}
     /// match_fns!{
     ///

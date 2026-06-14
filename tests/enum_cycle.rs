@@ -1,4 +1,5 @@
-use deki::*;
+use deki::core::Cycle;
+use deki::macros::Cycle;
 
 #[derive(Cycle,PartialEq,Debug)]
 enum Number {One, Two, Three}

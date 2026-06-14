@@ -8,7 +8,8 @@ use crate::Constructor;
     ///
     /// # Example
     /// ```
-    /// let mut map = deki_core::StackMap::<&str,i32>::new();
+    /// use deki_core::collections::StackMap;
+    /// let mut map = StackMap::<&str,i32>::new();
     /// *map.entry("x") = 42;
     /// assert_eq!(map.key_idx(&"x"), Some(0));
     /// ```
@@ -27,7 +28,8 @@ use crate::Constructor;
         ///
         /// # Example
         /// ```
-        /// let mut map = deki_core::StackMap::<&str,i32>::new();
+        /// use deki_core::collections::StackMap;
+        /// let mut map = StackMap::<&str,i32>::new();
         /// *map.entry("count") = 1;
         /// assert_eq!(*map.entry("count"), 1);
         /// ```
@@ -48,7 +50,8 @@ use crate::Constructor;
         ///
         /// # Example
         /// ```
-        /// let map = deki_core::StackMap::<&str,i32>::new();
+        /// use deki_core::collections::StackMap;
+        /// let map = StackMap::<&str,i32>::new();
         /// assert_eq!(map.key_idx(&"missing"), None);
         /// ```
         pub fn key_idx(&self, key: &K) -> Option<usize> {
@@ -58,7 +61,8 @@ use crate::Constructor;
         ///
         /// # Example
         /// ```
-        /// let mut map = deki_core::StackMap::<&str,i32>::new();
+        /// use deki_core::collections::StackMap;
+        /// let mut map = StackMap::<&str,i32>::new();
         /// map.entry("a");
         /// map.entry("b");
         /// let keys: Vec<_> = map.iter().map(|(k, _)| *k).collect();
@@ -71,7 +75,8 @@ use crate::Constructor;
         ///
         /// # Example
         /// ```
-        /// let mut map = deki_core::StackMap::<&str,i32>::new();
+        /// use deki_core::collections::StackMap;
+        /// let mut map = StackMap::<&str,i32>::new();
         /// *map.entry("x") = 1;
         /// let pairs: Vec<_> = map.into_iter().collect();
         /// assert_eq!(pairs, vec![("x", 1)]);
@@ -83,7 +88,8 @@ use crate::Constructor;
         ///
         /// # Example
         /// ```
-        /// let map = deki_core::StackMap::<&str,i32>::new();
+        /// use deki_core::collections::StackMap;
+        /// let map = StackMap::<&str,i32>::new();
         /// assert!(map.is_empty());
         /// ```
         pub fn is_empty(&self) -> bool {

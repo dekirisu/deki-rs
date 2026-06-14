@@ -15,7 +15,8 @@ keywords = ["macros", "proc-macro", "utility"]
 proc-macro = true
 
 [dependencies]
-deki_core = { workspace = true, features = ["proc"] }
+deki_proc = { workspace = true }
+maflow.workspace = true
 derive_preset = "0.1"
 paste = "1.0"
 quote.workspace = true

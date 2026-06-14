@@ -14,6 +14,7 @@ keywords = ["utility", "macros", "helpers"]
 [dependencies]
 deki_core.workspace = true
 deki_macros.workspace = true
+deki_proc = { workspace = true, optional = true }
 
 [workspace.dependencies.deki_core]
 path = "crates/core"
@@ -24,17 +25,23 @@ default-features = false
 path = "crates/macros"
 version = "0.3.0"
 
+[workspace.dependencies.deki_proc]
+path = "crates/proc"
+version = "0.3.0"
+
 [workspace.dependencies]
 quote = "1.0"
 syn = "2.0"
 proc-macro2 = "1.0"
+maflow = "0.1"
+extension-traits = "2.0.0"
 
 [features]
 default = ["random","approx","lerp"]
 random = ["deki_core/random"]
 approx = ["deki_core/approx"]
 lerp = ["deki_core/lerp"]
-proc = ["deki_core/proc"]
+proc = ["deki_proc"]
 
 [workspace]
-members = ["crates/*"]
+members = ["crates/*", "crates/proc"]
