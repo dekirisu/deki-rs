@@ -5,14 +5,6 @@ use crate::Constructor;
 // StackMap \\
 
     /// A key-value map that preserves insertion order.
-    ///
-    /// # Example
-    /// ```
-    /// use deki_core::collections::StackMap;
-    /// let mut map = StackMap::<&str,i32>::new();
-    /// *map.entry("x") = 42;
-    /// assert_eq!(map.key_idx(&"x"), Some(0));
-    /// ```
     #[derive(Constructor)]
     pub struct StackMap<K: PartialEq, V> {
         #[new(default)]

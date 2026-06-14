@@ -59,21 +59,21 @@ pub mod collections;
     pub trait Syncable:'static+Send+Sync {}
     impl <T:'static+Send+Sync> Syncable for T {}
 
-    /// Adds `.clear()` to any `Default` type, resetting it to `Self::default()`.
-    ///
-    /// # Example
-    /// ```
-    /// use deki_core::DefaultClear;
-    ///
-    /// struct State { x: i32, y: String }
-    /// impl Default for State { fn default() -> Self { Self { x: 0, y: String::new() } } }
-    ///
-    /// let mut s = State { x: 42, y: "hello".into() };
-    /// s.clear();
-    /// assert_eq!(s.x, 0);
-    /// assert!(s.y.is_empty());
-    /// ```
-    pub trait DefaultClear: Default {
+   /// Add `.clear()` to any `Default` type.
+   pub trait DefaultClear: Default {
+        /// Reset to the default value.
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::DefaultClear;
+        /// #[derive(Default)]
+        /// struct State { x: i32, y: String }
+        ///
+        /// let mut s = State { x: 42, y: "hello".into() };
+        /// s.clear();
+        /// assert_eq!(s.x, 0);
+        /// assert!(s.y.is_empty());
+        /// ```
         fn clear(&mut self){*self = Self::default();}
     }
     impl <A:Default> DefaultClear for A {}
@@ -81,8 +81,17 @@ pub mod collections;
 
 // Extensions \\
 
+    /// Add a value to both bounds of a range.
     #[ext(pub trait RangeOffset)]
     impl <Idx:Clone+Add<Output=Idx>> RangeInclusive<Idx> {
+        /// Add a value to both bounds of the range.
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::RangeOffset;
+        /// let r = (0..=10).offset(5);
+        /// assert_eq!(r, 5..=15);
+        /// ```
         fn offset(&self,rhs:Idx) -> Self {
             self.start().clone()+rhs.clone()
             ..=self.end().clone()+rhs.clone()
@@ -90,6 +99,14 @@ pub mod collections;
     }
 
     impl <Idx:Clone+Add<Output=Idx>> RangeOffset<Idx> for Range<Idx> {
+        /// Add a value to both bounds of the range.
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::RangeOffset;
+        /// let r = (0..10).offset(5);
+        /// assert_eq!(r, 5..15);
+        /// ```
         fn offset(&self,rhs:Idx) -> Self {
             self.start.clone()+rhs.clone()..self.end.clone()+rhs.clone()
         }
@@ -115,7 +132,23 @@ pub mod collections;
 
     /// Cycling addition/subtraction for numeric types within a range.
     pub trait CycleMath {
+        /// Add within [min, max), wrapping around.
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::CycleMath;
+        /// assert_eq!(8i32.add_qucy(5, 0, 10), 3);  // wraps
+        /// assert_eq!(5i32.add_qucy(3, 0, 10), 8);  // normal
+        /// ```
         fn add_qucy(self,rhs:Self,min:Self,max:Self) -> Self;
+        /// Subtract within [min, max), wrapping around.
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::CycleMath;
+        /// assert_eq!(2i32.sub_qucy(5, 0, 10), 7);  // wraps
+        /// assert_eq!(5i32.sub_qucy(3, 0, 10), 2);  // normal
+        /// ```
         fn sub_qucy(self,rhs:Self,min:Self,max:Self) -> Self;
     }
     
