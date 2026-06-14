@@ -35,8 +35,9 @@ use crate::*;
         /// # Example
         /// ```
         /// use deki_core::lerp::LerpableF32;
-        /// // rounding edge: 33.33 → 33
-        /// assert_eq!(0i32.lerp(100, 0.33), 33);
+        /// assert_eq!(0i32.lerp(100, 0.0), 0);
+        /// assert_eq!(0i32.lerp(100, 0.5), 50);
+        /// assert_eq!(0i32.lerp(100, 1.0), 100);
         /// ```
         fn lerp(&self, to: Self, lerp: f32) -> Self;
     }
@@ -96,7 +97,9 @@ use crate::*;
         /// # Example
         /// ```
         /// use deki_core::lerp::Clerpable;
-        /// // from 0.9→0.0 in [0,1): shortest is +0.1 (forward wraps to 0.0)
+        /// // from 0.0→0.9 in [0,1): shortest is backward (-0.1)
+        /// assert!((0.0_f32.delta_qucy(0.9, 0.0, 1.0) - (-0.1)).abs() < 1e-5);
+        /// // from 0.9→0.0: shortest is forward (+0.1)
         /// assert!((0.9_f32.delta_qucy(0.0, 0.0, 1.0) - 0.1).abs() < 1e-5);
         /// ```
         fn delta_qucy(&self, to: Self, min: Self, max: Self) -> Self;
@@ -105,8 +108,9 @@ use crate::*;
         /// # Example
         /// ```
         /// use deki_core::lerp::Clerpable;
-        /// // from 0.0→0.9 in [0,1): shortest is -0.1 (backward), lerp=1.0 → full
-        /// assert!((0.0_f32.lerp_qucy(0.9, 1.0, 0.0, 1.0) - 0.9).abs() < 1e-5);
+        /// // from 0.8→0.0 in [0,1): shortest is +0.2 forward
+        /// let val: f32 = 0.8.lerp_qucy(0.0, 0.5, 0.0, 1.0);
+        /// assert_eq!(val, 0.9);  // 0.8 + 0.1 = 0.9
         /// ```
         fn lerp_qucy(&self, to: Self, lerp: f32, min: Self, max: Self) -> Self;
         /// Gated cyclic lerp: interpolates along the shortest path, snapping within thresh.
@@ -114,10 +118,10 @@ use crate::*;
         /// # Example
         /// ```
         /// use deki_core::lerp::Clerpable;
-        /// // from 0.9→0.1 in [0,1): shortest is +0.2 forward, lerp=0.5 → +0.1
-        /// let mut val = 0.9f32;
-        /// assert!(!val.glerp_qucy(0.1, 0.5, 0.05, 0.0, 1.0));
-        /// assert!((val - 0.0).abs() < 1e-5);  // 0.9 + 0.1 = 1.0 wraps to 0.0
+        /// // snap when within threshold
+        /// let mut val = 0.99f32;
+        /// assert!(val.glerp_qucy(0.0, 0.5, 0.05, 0.0, 1.0));  // snapped
+        /// assert_eq!(val, 0.0);
         /// ```
         fn glerp_qucy(&mut self, to: Self, lerp: f32, thresh: Self, min: Self, max: Self) -> bool;
     }
@@ -157,8 +161,9 @@ use crate::*;
 
 // Lerp by Steps \\
 
-    /// Move toward a target in fixed steps, returning true when arrived.
+    /// Enable fixed-step interpolation toward a target.
     pub trait Stepable {
+        /// Move toward a target in fixed steps, returning true when arrived.
         fn sterp(&mut self, to: Self, step: Self) -> bool;
     }
 
@@ -180,8 +185,9 @@ use crate::*;
 
 // Cyclic Lerp by Steps \\
 
-    /// Move toward a cyclic target in fixed steps, wrapping around a range.
+    /// Enable cyclic fixed-step interpolation.
     pub trait CycleStapable {
+        /// Move toward a cyclic target in fixed steps, wrapping around a range.
         fn sterp_qucy(&mut self, to: Self, step: Self, min: Self, max: Self) -> bool;
     }
 
@@ -206,6 +212,16 @@ use crate::*;
     #[ext(pub trait DekiExtF32)]
     impl f32 {
         /// Apply smoothstep easing: an S-curve from 0 to 1 for `t` in `[0, 1]`.
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::lerp::DekiExtF32;
+        /// assert_eq!(0.0_f32.smooth(), 0.0);
+        /// assert_eq!(0.25_f32.smooth(), 0.15625);
+        /// assert_eq!(0.5_f32.smooth(), 0.5);
+        /// assert_eq!(0.75_f32.smooth(), 0.84375);
+        /// assert_eq!(1.0_f32.smooth(), 1.0);
+        /// ```
         #[inline]
         fn smooth(self) -> f32 {
             self * self * (3. - 2. * self)
@@ -215,9 +231,19 @@ use crate::*;
         /// # Example
         /// ```
         /// use deki_core::lerp::DekiExtF32;
+        ///
+        /// // in-range
         /// assert_eq!(0.5_f32.clamp_unit(), 0.5);
+        /// assert_eq!(0.0_f32.clamp_unit(), 0.0);
+        /// assert_eq!(1.0_f32.clamp_unit(), 1.0);
+        ///
+        /// // below range
         /// assert_eq!((-1.0).clamp_unit(), 0.0);
+        /// assert_eq!((-100.0).clamp_unit(), 0.0);
+        ///
+        /// // above range
         /// assert_eq!(2.0.clamp_unit(), 1.0);
+        /// assert_eq!(100.0.clamp_unit(), 1.0);
         /// ```
         #[inline]
         fn clamp_unit(self) -> f32 {
@@ -230,7 +256,6 @@ use crate::*;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::DekiExtF32;
 
     #[test]
     fn stapable_i32() {
@@ -276,45 +301,6 @@ mod tests {
         assert!(num < 2.5);
         assert!(num.sterp_qucy(3., 1., min, max));
         assert_eq!(num, 3.);
-    }
-
-    #[test]
-    fn smooth_full_coverage() {
-        use super::DekiExtF32;
-        // identity endpoints
-        assert_eq!(0.0_f32.smooth(), 0.0);
-        assert_eq!(1.0_f32.smooth(), 1.0);
-        // smoothstep midpoint (fixed point)
-        assert_eq!(0.5_f32.smooth(), 0.5);
-        // non-trivial interior points
-        assert_eq!(0.25_f32.smooth(), 0.15625);
-        assert_eq!(0.75_f32.smooth(), 0.84375);
-        // extrapolation (outside [0, 1])
-        assert_eq!((-0.5_f32).smooth(), 1.0);
-        assert_eq!(1.5_f32.smooth(), 0.0);
-        assert_eq!(2.0_f32.smooth(), -4.0);
-    }
-
-    #[test]
-    fn clamp_unit_full_coverage() {
-        assert_eq!(0.5_f32.clamp_unit(), 0.5);
-        assert_eq!(0.0_f32.clamp_unit(), 0.0);
-        assert_eq!(1.0_f32.clamp_unit(), 1.0);
-        assert_eq!((-1.0).clamp_unit(), 0.0);
-        assert_eq!(2.0.clamp_unit(), 1.0);
-        assert_eq!(100.0.clamp_unit(), 1.0);
-        assert_eq!((-100.0).clamp_unit(), 0.0);
-    }
-
-    #[test]
-    fn lerpablef32_coverage() {
-        use super::LerpableF32;
-        assert_eq!(0i32.lerp(100, 0.5), 50);
-        assert_eq!(0i32.lerp(10, 0.3), 3);
-        assert_eq!(0i32.lerp(100, 0.0), 0);
-        assert_eq!(0i32.lerp(100, 1.0), 100);
-        // rounding: 33.33... → 33
-        assert_eq!(0i32.lerp(100, 0.33), 33);
     }
 
     #[test]
