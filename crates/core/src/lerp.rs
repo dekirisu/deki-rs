@@ -142,7 +142,7 @@ use crate::*;
             #[inline]
             fn lerp_qucy(&self, to: Self, lerp: f32, min: Self, max: Self) -> Self {
                 let delta = self.delta_qucy(to, min, max);
-                self.add_qucy((delta as f32 * lerp) as ^0, min, max)
+                self.add_qucy(delta.mul_f32(lerp), min, max)
             }
             #[inline]
             fn glerp_qucy(&mut self, to: Self, lerp: f32, thresh: Self, min: Self, max: Self) -> bool {

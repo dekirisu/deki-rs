@@ -35,7 +35,7 @@ pub use {convert_case, proc_macro2, quote, syn};
         let mut new = qt!();
         if let Some(tok) = split.pop() {
             if tok.to_string().as_str() == "*" {
-                let fn_name = stream.clone().into_iter().skip(1).next().unwrap().to_string().to_case(Case::Pascal);
+                let fn_name = stream.clone().into_iter().nth(1).unwrap().to_string().to_case(Case::Pascal);
                 let ident = format!("{name}{fn_name}Ext").ident_span(tok.span());
                 new.extend(qt!(#[ext(pub trait #ident)]));
             } else {
@@ -43,7 +43,7 @@ pub use {convert_case, proc_macro2, quote, syn};
             }
         }
 
-        qt!( #new impl #gen_impl #trat #name #gen_typ #gen_where {#stream} ).into()
+        qt!( #new impl #gen_impl #trat #name #gen_typ #gen_where {#stream})
     }
 
 
@@ -52,11 +52,11 @@ pub use {convert_case, proc_macro2, quote, syn};
     /// Convert a string to an `Ident`.
     #[ext(pub trait StringProcExt)]
     impl String {
-        fn ident(&self) -> Ident {Ident::new(&self,Span::call_site())}
+        fn ident(&self) -> Ident {Ident::new(self,Span::call_site())}
         fn ident_span(&self,span:Span) -> Ident {Ident::new(self,span)}
     }
 
-    impl <'a> StringProcExt for &'a str {
+    impl StringProcExt for &str {
         fn ident(&self) -> Ident {Ident::new(self,Span::call_site())}
         fn ident_span(&self,span:Span) -> Ident {Ident::new(self,span)}
     }
@@ -100,10 +100,18 @@ pub use {convert_case, proc_macro2, quote, syn};
         #[inline] fn unwrap_literal(self) -> Literal {unwrpr!(self = Literal)}
 
         // Check Inner
-        #[inline] fn map_punct<O:Default,F:FnOnce(&Punct)->O>(&self,check:F) -> O {checker!(self::Punct|v|(check)(v))}
-        #[inline] fn map_ident<O:Default,F:FnOnce(&Ident)->O>(&self,check:F) -> O {checker!(self::Ident|v|(check)(v))}
-        #[inline] fn map_group<O:Default,F:FnOnce(&Group)->O>(&self,check:F) -> O {checker!(self::Group|v|(check)(v))}
-        #[inline] fn map_literal<O:Default,F:FnOnce(&Literal)->O>(&self,check:F) -> O {checker!(self::Literal|v|(check)(v))}
+        #[inline]
+        #[allow(clippy::redundant_closure)]
+        fn map_punct<O:Default,F:FnOnce(&Punct)->O>(&self,check:F) -> O {checker!(self::Punct|v|check(v))}
+        #[inline]
+        #[allow(clippy::redundant_closure)]
+        fn map_ident<O:Default,F:FnOnce(&Ident)->O>(&self,check:F) -> O {checker!(self::Ident|v|check(v))}
+        #[inline]
+        #[allow(clippy::redundant_closure)]
+        fn map_group<O:Default,F:FnOnce(&Group)->O>(&self,check:F) -> O {checker!(self::Group|v|check(v))}
+        #[inline]
+        #[allow(clippy::redundant_closure)]
+        fn map_literal<O:Default,F:FnOnce(&Literal)->O>(&self,check:F) -> O {checker!(self::Literal|v|check(v))}
 
         // Shortcuts
         #[inline] fn is_numeric(&self) -> bool {self.map_literal(move|x|x.is_numeric())}

@@ -73,8 +73,9 @@ use crate::Constructor;
         /// let pairs: Vec<_> = map.into_iter().collect();
         /// assert_eq!(pairs, vec![("x", 1)]);
         /// ```
+        #[allow(clippy::should_implement_trait)]
         pub fn into_iter(self) -> Zip<IntoIter<K>, IntoIter<V>> {
-            zip(self.keys.into_iter(), self.value.into_iter())
+            zip(self.keys, self.value)
         }
         /// Returns `true` if the map contains no keys.
         ///
@@ -120,7 +121,7 @@ mod tests {
         map.entry("z".into());
         map.entry("a".into());
         map.entry("m".into());
-        let keys: Vec<String> = map.keys.iter().cloned().collect();
+        let keys: Vec<String> = map.keys.clone();
         assert_eq!(keys, vec![String::from("z"), String::from("a"), String::from("m")]);
     }
 

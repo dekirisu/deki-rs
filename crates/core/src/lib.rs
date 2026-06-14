@@ -291,7 +291,7 @@ pub mod collections;
         fn sym_clamp(i:f32,limit:f32,limit2:f32) -> f32 {
             let mut a = i % limit2;
             if a > limit && a < limit2 
-                {a = -limit2 + a;} 
+                {a += -limit2;} 
             a
         }
 
