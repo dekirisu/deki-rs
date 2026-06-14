@@ -1,6 +1,6 @@
 [package]
 name = "deki"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 
 authors = ["Dekirisu <dekirisu@gmail.com>"]
@@ -17,12 +17,12 @@ deki_macros.workspace = true
 
 [workspace.dependencies.deki_core]
 path = "crates/core"
-version = "0.2.0"
+version = "0.3.0"
 default-features = false
 
 [workspace.dependencies.deki_macros]
 path = "crates/macros"
-version = "0.2.0"
+version = "0.3.0"
 
 [workspace.dependencies]
 quote = "1.0"
