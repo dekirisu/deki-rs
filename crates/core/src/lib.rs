@@ -1,10 +1,17 @@
 use std::{iter::{zip, Zip}, ops::{Add, Range, RangeInclusive, Rem, Sub}, slice::Iter, vec::IntoIter};
 
 pub use buns;
-#[cfg(feature = "derive_more")]
-pub use derive_more;
 pub use maflow::*;
 pub use type_cell::*;
+
+#[cfg(feature = "derive_more")]
+pub use derive_more;
+
+#[cfg(feature = "lerp")]
+pub mod lerp;
+
+#[cfg(feature = "proc")]
+pub mod proc;
 
 
 // Renames \\
@@ -12,10 +19,9 @@ pub use type_cell::*;
     pub use std::marker::PhantomData as Ghost;
     pub use derive_new::new as Constructor;
     pub use extension_traits::extension as ext;
-#[cfg(feature = "derive_more")]
-    pub use derive_more as drv;
-    pub use buns::sandwich;
+    pub use buns::compose;
     pub type Str = &'static str;
+
 
 // Cycle Trait \\
 
@@ -38,7 +44,8 @@ pub use type_cell::*;
     impl <A:Default> DefaultClear for A {}
 
 
-// Extensions  \\
+// Extensions \\
+
     #[ext(pub trait RangeOffset)]
     impl <Idx:Clone+Add<Output=Idx>> RangeInclusive<Idx> {
         fn offset(&self,rhs:Idx) -> Self {
@@ -386,13 +393,5 @@ pub use type_cell::*;
         }
     }
 
-
-// Lerp Module \\
-#[cfg(feature = "lerp")]
-pub mod lerp;
-
-// Proc Module \\
-#[cfg(feature = "proc")]
-pub mod proc;
 
 // EOF \\
