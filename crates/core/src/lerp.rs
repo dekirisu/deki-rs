@@ -5,8 +5,24 @@ use crate::*;
 // Linear Interpolation \\
 
     /// Linearly interpolate between two values using `Add`, `Sub`, `Mul<f32>`.
+    ///
+    /// # Example
+    /// ```
+    /// use deki_core::lerp::Lerpable;
+    ///
+    /// let a: f32 = 0.0.lerp(10.0, 0.5);
+    /// assert_eq!(a, 5.0);
+    /// assert_eq!(0.0_f32.lerp(10.0, 0.0), 0.0);  // identity
+    /// assert_eq!(0.0_f32.lerp(10.0, 1.0), 10.0); // identity
+    /// ```
     pub trait Lerpable {
         /// Interpolate from self toward to by fraction t in [0, 1].
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::lerp::Lerpable;
+        /// assert_eq!(0.0_f32.lerp(10.0, 0.5), 5.0);
+        /// ```
         fn lerp(&self, to: Self, lerp: f32) -> Self;
     }
 
@@ -167,6 +183,14 @@ use crate::*;
             self * self * (3. - 2. * self)
         }
         /// Clamp the value to the unit interval [0, 1].
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::lerp::DekiExtF32;
+        /// assert_eq!(0.5_f32.clamp_unit(), 0.5);
+        /// assert_eq!((-1.0).clamp_unit(), 0.0);
+        /// assert_eq!(2.0.clamp_unit(), 1.0);
+        /// ```
         #[inline]
         fn clamp_unit(self) -> f32 {
             self.clamp(0., 1.)
@@ -178,6 +202,7 @@ use crate::*;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::DekiExtF32;
 
     #[test]
     fn stapable_i32() {
@@ -223,5 +248,33 @@ mod tests {
         assert!(num < 2.5);
         assert!(num.sterp_qucy(3., 1., min, max));
         assert_eq!(num, 3.);
+    }
+
+    #[test]
+    fn smooth_full_coverage() {
+        use super::DekiExtF32;
+        // identity endpoints
+        assert_eq!(0.0_f32.smooth(), 0.0);
+        assert_eq!(1.0_f32.smooth(), 1.0);
+        // smoothstep midpoint (fixed point)
+        assert_eq!(0.5_f32.smooth(), 0.5);
+        // non-trivial interior points
+        assert_eq!(0.25_f32.smooth(), 0.15625);
+        assert_eq!(0.75_f32.smooth(), 0.84375);
+        // extrapolation (outside [0, 1])
+        assert_eq!((-0.5_f32).smooth(), 1.0);
+        assert_eq!(1.5_f32.smooth(), 0.0);
+        assert_eq!(2.0_f32.smooth(), -4.0);
+    }
+
+    #[test]
+    fn clamp_unit_full_coverage() {
+        assert_eq!(0.5_f32.clamp_unit(), 0.5);
+        assert_eq!(0.0_f32.clamp_unit(), 0.0);
+        assert_eq!(1.0_f32.clamp_unit(), 1.0);
+        assert_eq!((-1.0).clamp_unit(), 0.0);
+        assert_eq!(2.0.clamp_unit(), 1.0);
+        assert_eq!(100.0.clamp_unit(), 1.0);
+        assert_eq!((-100.0).clamp_unit(), 0.0);
     }
 }

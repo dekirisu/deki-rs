@@ -2,6 +2,7 @@ use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
 
 pub use buns;
 pub use maflow::*;
+pub use paste;
 pub use type_cell::*;
 
 #[cfg(feature = "derive_more")]
@@ -59,6 +60,19 @@ pub mod collections;
     impl <T:'static+Send+Sync> Syncable for T {}
 
     /// Adds `.clear()` to any `Default` type, resetting it to `Self::default()`.
+    ///
+    /// # Example
+    /// ```
+    /// use deki_core::DefaultClear;
+    ///
+    /// struct State { x: i32, y: String }
+    /// impl Default for State { fn default() -> Self { Self { x: 0, y: String::new() } } }
+    ///
+    /// let mut s = State { x: 42, y: "hello".into() };
+    /// s.clear();
+    /// assert_eq!(s.x, 0);
+    /// assert!(s.y.is_empty());
+    /// ```
     pub trait DefaultClear: Default {
         fn clear(&mut self){*self = Self::default();}
     }
@@ -254,6 +268,20 @@ pub mod collections;
 // Macros \\
 
     /// Declare a pub const named after its type; no Default required.
+    ///
+    /// # Example
+    /// ```
+    /// use deki_core::{qonst,paste};
+    ///
+    /// struct Point { x: f32, y: f32 }
+    /// qonst!(Point: x: 1.0, y: 2.0);
+    /// assert_eq!(POINT.x, 1.0);
+    ///
+    /// #[derive(PartialEq, Debug)]
+    /// enum Dir { North, South }
+    /// qonst!(Dir::North);
+    /// assert_eq!(DIR, Dir::North);
+    /// ```
     #[macro_export]
     macro_rules! qonst {
         ($ty:ty: $($tt:tt)*) => {paste!{
@@ -265,6 +293,15 @@ pub mod collections;
     }
 
     /// Define a trait alias with a blanket impl for any type satisfying the bounds.
+    ///
+    /// # Example
+    /// ```
+    /// deki_core::trait_alias!(CloneSend: Clone + Send);
+    /// // CloneSend is now a trait alias for Clone + Send
+    /// // Any type that implements Clone + Send automatically implements CloneSend
+    /// fn takes_clone_send<T: CloneSend>(_t: T) {}
+    /// takes_clone_send(42i32);
+    /// ```
     #[macro_export]
     macro_rules! trait_alias {($trait:ident:$($tt:tt)*)=>{
         pub trait $trait: $($tt)* {}
@@ -272,6 +309,14 @@ pub mod collections;
     }}
 
     /// Implement `Default` inline without a separate `impl` block.
+    ///
+    /// # Example
+    /// ```
+    /// struct Config { timeout: u32, name: String }
+    /// deki_core::default!(Config = Self { timeout: 30, name: String::new() });
+    /// let cfg = Config::default();
+    /// assert_eq!(cfg.timeout, 30);
+    /// ```
     #[macro_export]
     macro_rules! default {($name:ty = $($tt:tt)*) => {
         impl Default for $name {
