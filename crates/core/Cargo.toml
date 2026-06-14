@@ -7,6 +7,9 @@ authors = ["Dekirisu <dekirisu@gmail.com>"]
 license = "MIT OR Apache-2.0"
 description = "A collection of crates, functions and renames tailored to myself!"
 repository = "https://github.com/dekirisu/deki-rs/"
+documentation = "https://docs.rs/deki_core"
+categories = ["development-tools", "utilities"]
+keywords = ["utility", "helpers", "math"]
 
 [dependencies]
 derive-new = "0.7.0"

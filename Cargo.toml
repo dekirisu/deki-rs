@@ -7,6 +7,9 @@ authors = ["Dekirisu <dekirisu@gmail.com>"]
 license = "MIT OR Apache-2.0"
 description = "A base for most of my rust projects (tailored to myself)!"
 repository = "https://github.com/dekirisu/deki-rs/"
+documentation = "https://docs.rs/deki"
+categories = ["development-tools", "utilities"]
+keywords = ["utility", "macros", "helpers"]
 
 [dependencies]
 deki_core.workspace = true

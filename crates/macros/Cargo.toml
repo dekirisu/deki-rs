@@ -7,6 +7,9 @@ authors = ["Dekirisu <dekirisu@gmail.com>"]
 license = "MIT OR Apache-2.0"
 description = "A growing set of macros (tailored to myself)!"
 repository = "https://github.com/dekirisu/deki-rs/"
+documentation = "https://docs.rs/deki_macros"
+categories = ["development-tools"]
+keywords = ["macros", "proc-macro", "utility"]
 
 [lib]
 proc-macro = true
