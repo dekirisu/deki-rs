@@ -8,9 +8,9 @@ use crate::Constructor;
     #[derive(Constructor)]
     pub struct StackMap<K: PartialEq, V> {
         #[new(default)]
-        pub keys: Vec<K>,
+        keys: Vec<K>,
         #[new(default)]
-        pub value: Vec<V>,
+        values: Vec<V>,
     }
 
     impl<K: PartialEq, V: Default> StackMap<K, V> {
@@ -29,10 +29,10 @@ use crate::Constructor;
             match self.key_idx(&key) {
                 None => {
                     self.keys.push(key);
-                    self.value.push(V::default());
-                    self.value.last_mut().unwrap()
+                    self.values.push(V::default());
+                    self.values.last_mut().unwrap()
                 }
-                Some(id) => &mut self.value[id],
+                Some(id) => &mut self.values[id],
             }
         }
     }
@@ -49,6 +49,14 @@ use crate::Constructor;
         pub fn key_idx(&self, key: &K) -> Option<usize> {
             self.keys.iter().enumerate().find_map(|(id, k)| if key == k { Some(id) } else { None })
         }
+        /// Returns a read-only reference to the keys.
+        pub fn keys(&self) -> &[K] {
+            &self.keys
+        }
+        /// Returns a read-only reference to the values.
+        pub fn values(&self) -> &[V] {
+            &self.values
+        }
         /// Yields `(key, value)` pairs in insertion order.
         ///
         /// # Example
@@ -61,7 +69,7 @@ use crate::Constructor;
         /// assert_eq!(keys, vec!["a", "b"]);
         /// ```
         pub fn iter(&self) -> Zip<Iter<'_, K>, Iter<'_, V>> {
-            zip(self.keys.iter(), self.value.iter())
+            zip(self.keys.iter(), self.values.iter())
         }
         /// Consumes the map, yielding `(key, value)` pairs in insertion order.
         ///
@@ -75,7 +83,7 @@ use crate::Constructor;
         /// ```
         #[allow(clippy::should_implement_trait)]
         pub fn into_iter(self) -> Zip<IntoIter<K>, IntoIter<V>> {
-            zip(self.keys, self.value)
+            zip(self.keys, self.values)
         }
         /// Returns `true` if the map contains no keys.
         ///
@@ -87,6 +95,10 @@ use crate::Constructor;
         /// ```
         pub fn is_empty(&self) -> bool {
             self.keys.is_empty()
+        }
+        /// Returns the number of entries in the map.
+        pub fn len(&self) -> usize {
+            self.keys.len()
         }
     }
 
@@ -121,7 +133,7 @@ mod tests {
         map.entry("z".into());
         map.entry("a".into());
         map.entry("m".into());
-        let keys: Vec<String> = map.keys.clone();
+        let keys: Vec<String> = map.keys().to_vec();
         assert_eq!(keys, vec![String::from("z"), String::from("a"), String::from("m")]);
     }
 
@@ -131,6 +143,6 @@ mod tests {
         for i in 0..5 {
             map.entry(i);
         }
-        assert_eq!(map.keys.len(), map.value.len());
+        assert_eq!(map.keys().len(), map.values().len());
     }
 }
