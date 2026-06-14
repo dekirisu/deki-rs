@@ -65,7 +65,7 @@ pub mod collections;
 
 // Cycling Addition \\
 
-    buns::sandwich!{paste!{
+    compose!{paste!{
         #[inline]
         pub fn [<quick_cycle_ ^0>]<A>(cur:A,rhs:A,min:A,max:A) -> A 
         where A: Clone
@@ -91,7 +91,7 @@ pub mod collections;
         fn sub_qucy(self,rhs:Self,min:Self,max:Self) -> Self;
     }
     
-    buns::sandwich!{
+    compose!{
         impl CycleMath for ^0 {
             #[inline]
             fn add_qucy(self,rhs:Self,min:Self,max:Self) -> Self {
@@ -122,7 +122,7 @@ pub mod collections;
         fn mul_f32(self,rhs:f32) -> Self {self * rhs as f64}
     }
 
-    buns::sandwich!{
+    compose!{
         impl MulF32 for ^0 {
             #[inline]
             fn mul_f32(self,rhs:f32) -> Self {

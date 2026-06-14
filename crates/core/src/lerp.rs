@@ -49,7 +49,7 @@ use crate::*;
         fn glerp(&mut self, to: Self, lerp: f32, thresh: Self) -> bool;
     }
 
-    buns::sandwich! {
+    compose! {
         impl Glerpable for ^0 {
             #[inline]
             fn glerp(&mut self, to: Self, lerp: f32, thresh: Self) -> bool {
@@ -81,7 +81,7 @@ use crate::*;
         fn glerp_qucy(&mut self, to: Self, lerp: f32, thresh: Self, min: Self, max: Self) -> bool;
     }
 
-    buns::sandwich! {
+    compose! {
         impl Clerpable for ^0 {
             #[inline]
             fn delta_qucy(&self, to: Self, min: Self, max: Self) -> Self {
@@ -120,7 +120,7 @@ use crate::*;
         fn sterp(&mut self, to: Self, step: Self) -> bool;
     }
 
-    buns::sandwich! {
+    compose! {
         impl Stepable for ^0 {
             fn sterp(&mut self, to: Self, step: Self) -> bool {
                 let delta = to - *self;
@@ -142,7 +142,7 @@ use crate::*;
         fn sterp_qucy(&mut self, to: Self, step: Self, min: Self, max: Self) -> bool;
     }
 
-    buns::sandwich! {
+    compose! {
         impl CycleStapable for ^0 {
             fn sterp_qucy(&mut self, to: Self, step: Self, min: Self, max: Self) -> bool {
                 let delta = self.delta_qucy(to, min, max);
