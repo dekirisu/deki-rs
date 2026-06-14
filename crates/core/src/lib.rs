@@ -26,7 +26,28 @@ pub mod collections;
 
     /// mainly meant for: `#[derive(Cycle)]` on simple enums
     pub trait Cycle {
+        /// Advance to next variant, wrapping to first.
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::Cycle;
+        /// #[derive(::deki_macros::Cycle, PartialEq, Debug)]
+        /// enum D {A, B, C}
+        /// assert_eq!(D::A.cycle_next(), D::B);
+        /// assert_eq!(D::C.cycle_next(), D::A); // wraps
+        /// ```
         fn cycle_next(&self) -> Self;
+
+        /// Move to prev variant, wrapping to last.
+        ///
+        /// # Example
+        /// ```
+        /// use deki_core::Cycle;
+        /// #[derive(::deki_macros::Cycle, PartialEq, Debug)]
+        /// enum D {A, B, C}
+        /// assert_eq!(D::B.cycle_prev(), D::A);
+        /// assert_eq!(D::A.cycle_prev(), D::C); // wraps
+        /// ```
         fn cycle_prev(&self) -> Self;
     }
 
