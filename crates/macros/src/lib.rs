@@ -19,6 +19,7 @@ derive_preset::create!{
     deref       "drv::Deref,drv::DerefMut"
 }
 
+/// Generate `cycle_next()` and `cycle_prev()` for unit-variant enums.
 #[proc_macro_derive(Cycle)]
 pub fn cycle(input:CompilerTokens) -> CompilerTokens {
     let input = parse_macro_input!(input as DeriveInput);
@@ -47,7 +48,8 @@ pub fn cycle(input:CompilerTokens) -> CompilerTokens {
     }
 }
 
- #[proc_macro_derive(ForceDefault)]
+/// Generate `Default` by calling `.default()` on each field.
+#[proc_macro_derive(ForceDefault)]
 pub fn force_default (item:CompilerTokens) -> CompilerTokens {
     let input: DeriveInput = syn::parse(item).unwrap();
     let DeriveInput{attrs:_,vis:_,ident,generics,data} = input;
@@ -70,11 +72,9 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
 
 // Random Utils \\
 
-    /// Replace every bool to a X or O:
-    /// - true: X
-    /// - false: O
+    /// Replace every `bool` with `X` or `O` in a token tree: `true` → `X`, `false` → `O`.
     ///
-    /// Meant to be used in bool matches:
+    /// Meant for pattern-matching booleans in macros:
     /// ```rust
     /// use deki_macros::xoxo;
     /// let result = xoxo!{match [true,false,true] {
@@ -94,9 +94,9 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         }).into()
     }
 
-    /// Quick Implementations:
-    /// - the trait has to have 1 required method
-    /// - ..which is named like tie trait (but snake-case)
+    /// Quickly implement traits with a single required method.
+    ///
+    /// The trait must have exactly one method, and the impl body is named after the trait (snake_case).
     ///
     /// # Usage
     /// ```rust
@@ -152,10 +152,10 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         }.into()
     }
 
-    /// Quickly add a method to a Type
-    /// - `#[imp(Struct)]`: for a owned Type
-    /// - `#[imp(Struct|Trait)]`: to impl a singe-method trait
-    /// - `#[imp(Struct|*)]`: for a foreign Type (generates a new trait)
+    /// Quickly add a method to a type
+    /// - `#[imp(Struct)]`: for a owned type
+    /// - `#[imp(Struct|Trait)]`: to impl a single-method trait
+    /// - `#[imp(Struct|*)]`: for a foreign type (generates a new trait)
     #[proc_macro_attribute]
     pub fn imp (attr:CompilerTokens,item:CompilerTokens) -> CompilerTokens {
         let item: TokenStream = item.into();
@@ -163,29 +163,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         deki_proc::imp(attr,item).into()
     }
 
-    /// Alternative Syntax to attach functionality to type variants:
-    /// - atm: Return type has to impl Default
-    /// ```rust
-    /// use deki_macros::match_fns;
-    /// enum Object {RedSphere, GreenCube}
-    /// match_fns!{
-    ///
-    ///     // 1. Define Methods - '&self' is assumed as parameter
-    ///     [Object]
-    ///     shape() -> &'static str;
-    ///     color(brightness:f32) -> &'static str;
-    ///
-    ///     // 2. Add Code
-    ///     [::RedSphere]
-    ///     shape: "sphere";
-    ///     color: if brightness > 0.5 {"bright-red"} else {"red"};
-    ///
-    ///     [::GreenCube]
-    ///     shape: "cube";
-    ///     color: "just-green";
-    ///
-    /// }
-    /// ```
+    /// Define per-variant enum methods with unmatched variants falling back to Default::default().
     #[proc_macro]
     pub fn match_fns (item:CompilerTokens) -> CompilerTokens {
         let stream: TokenStream = item.into();
@@ -278,6 +256,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         }))
     }
 
+    /// Converts identifiers to different cases (snake, camel, scream, flat, upper, pascal).
     #[proc_macro]
     pub fn foname(token:CompilerTokens) -> CompilerTokens {
         foname_stream(token.into()).into()

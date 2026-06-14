@@ -19,10 +19,10 @@ pub use {convert_case, proc_macro2, quote, syn};
 
 // Quick Implement Prepare \\
 
-    /// Quickly add a method to a Type
-    /// - `#[imp(Struct)]`: for a owned Type
-    /// - `#[imp(Struct|Trait)]`: to impl a singe-method trait
-    /// - `#[imp(Struct|*)]`: for a foreign Type (generates a new trait)
+    /// Quickly add a method to a type
+    /// - `#[imp(Struct)]`: for a owned type
+    /// - `#[imp(Struct|Trait)]`: to impl a single-method trait
+    /// - `#[imp(Struct|*)]`: for a foreign type (generates a new trait)
     pub fn imp (attr:TokenStream,stream:TokenStream) -> TokenStream {
         let mut split = attr.peek_iter().split_punct('|');
         let mut iter = split.remove(0).peek_iter();
@@ -49,6 +49,7 @@ pub use {convert_case, proc_macro2, quote, syn};
 
 // String <> Ident \\
 
+    /// Convert a string to an `Ident`.
     #[ext(pub trait StringProcExt)]
     impl String {
         fn ident(&self) -> Ident {Ident::new(&self,Span::call_site())}
@@ -63,10 +64,7 @@ pub use {convert_case, proc_macro2, quote, syn};
 
 // Neat Token Iterator \\
 
-    /// Token Level Return
-    /// - Some: It's the requested thing
-    /// - None: It can't be the requested thing
-    /// - Maybe: It can be the requested thing, but something is missing
+    /// Token-level return: `None` = no progress, `Some` = value without progress, `Maybe` = progress with missing data.
     #[derive(Default)]
     pub enum Check<T,M> {#[default] None, Some(T), Maybe(M)}
 
@@ -114,7 +112,7 @@ pub use {convert_case, proc_macro2, quote, syn};
 
         // Utils \|
 
-        /// convert to [TokenStream] or get inner tokens of a [Group]
+        /// For Groups return the inner stream; for single tokens, wrap them in a stream.
         #[inline] fn inner_tokens(&self) -> TokenStream {match self{
             TokenTree::Group(g) => g.stream(),
             _ => self.to_token_stream()
@@ -192,18 +190,17 @@ pub use {convert_case, proc_macro2, quote, syn};
 
 // Stream Handling \\
 
-    /// Stream Level Return
-    /// - None: Iter didn't progress: Can't be the requested thing
-    /// - Base: Iter progressed (e.g. due to checks), here are the OG things
-    /// - Shift: Iter progressed: Successfully processed whatever requested
+    /// Stream-level return: `None` = no progress, `Base` = original tokens, `Shift` = consumed tokens.
     #[derive(Default)]
     pub enum Step<T,M> {#[default] None, Base(T), Shift(M)}
 
     impl <T,M> Step <T,M> {
+        /// Panic-unwrap the `Shift` variant.
         pub fn risk_shift(self) -> M {match self {
             Self::Shift(m) => m,
             _ => panic!{}
         }}
+        /// Unwrap `Shift` or provide a fallback value.
         pub fn shift_or(self,m:M) -> M {match self {
             Self::Shift(m) => m,
             _ => m
@@ -231,6 +228,7 @@ pub use {convert_case, proc_macro2, quote, syn};
 
     }
 
+    /// A peekable iterator over [`TokenTree`]s.
     pub type PeekIter = Peekable<IntoIter>;
 
     #[ext(pub trait TreeIterExt)]
@@ -244,7 +242,7 @@ pub use {convert_case, proc_macro2, quote, syn};
             out
         }
 
-        /// skip until [Self::next()] isn't a [TokenTree::Punct]
+        /// Skip until hitting a punct in stoppers.
         fn skip_puncts(&mut self,stoppers:&str) -> Vec<TokenTree> {
             let mut out = vec![];
             while let Some(TokenTree::Punct(pnc)) = self.peek() {
@@ -254,13 +252,13 @@ pub use {convert_case, proc_macro2, quote, syn};
             out
         }
 
-        /// only progress iter if next is a numeric literal & return it
+        /// Consume and return the next token only if it's a numeric literal.
         fn next_if_num(&mut self) -> Option<Literal> {
             exit!{if !self.peek().is_numeric()}
             self.next().map(|l|l.unwrap_literal())
         }
     
-        /// 
+        /// Try parsing the next numeric literal as an f32.
         fn try_next_float(&mut self) -> Option<(f32,LitFloat)> {
             exit!{lit = self.next_if_num()}
             let lit: LitFloat = lit.clone().into();
@@ -268,15 +266,14 @@ pub use {convert_case, proc_macro2, quote, syn};
             Some((num,lit))
         }
 
-        /// get next punct as [char] without progressing iter, if not a punct its a `'n'` 
+        /// Peek the next punctuation character; returns `'n'` as sentinel if not a punct.
         fn peek_punct(&mut self) -> char {
             exit!{>(peek = self.peek())'n'}
             exit!{>(*TokenTree::Punct(p) = peek)'n'}
             p.as_char()
         }
 
-        /// splits Tokens into multiple [TokenStream]s  by a char delimiter. 
-        /// - doesn't include empty parts.
+        /// Split a token stream by a punctuation delimiter, skipping empty parts.
         fn split_punct(self,punct:char) -> Vec<TokenStream> {
             let mut out = vec![];
             let mut curr = vec![];

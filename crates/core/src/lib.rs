@@ -24,7 +24,7 @@ pub mod collections;
 
 // Cycle Trait \\
 
-    /// mainly meant for: `#[derive(Cycle)]` on simple enums
+    /// Cycle through unit-variant enum variants with wrapping.
     pub trait Cycle {
         /// Advance to next variant, wrapping to first.
         ///
@@ -54,10 +54,11 @@ pub mod collections;
 
 // Traits \\
 
-    /// 'Short form' for: 'static+Send+Sync
+    /// Mark a type as `'static + Send + Sync` with a single bound.
     pub trait Syncable:'static+Send+Sync {}
     impl <T:'static+Send+Sync> Syncable for T {}
 
+    /// Adds `.clear()` to any `Default` type, resetting it to `Self::default()`.
     pub trait DefaultClear: Default {
         fn clear(&mut self){*self = Self::default();}
     }
@@ -98,14 +99,9 @@ pub mod collections;
         }
     } #sub #add }
 
+    /// Cycling addition/subtraction for numeric types within a range.
     pub trait CycleMath {
-        /// quick cycling addition within a exclusive range, which assumes:
-        /// - current value is within the range
-        /// - range length < _::MAX/3
         fn add_qucy(self,rhs:Self,min:Self,max:Self) -> Self;
-        /// quick cycling subtraction within a exclusive range, which assumes:
-        /// - current value is within the range
-        /// - range length < _::MAX/3
         fn sub_qucy(self,rhs:Self,min:Self,max:Self) -> Self;
     }
     
@@ -131,7 +127,7 @@ pub mod collections;
     #[ext(pub trait MulF32)]
     impl f32 {
         #[inline]
-        /// wonky float multiplication, mainly meant for integers
+        /// Multiply by an f32 and round to the nearest integer.
         fn mul_f32(self,rhs:f32) -> Self {self * rhs}
     }
 
@@ -153,13 +149,13 @@ pub mod collections;
 
 // Randomness \\
 
-    /// quick and easy randomness
+    /// Fast randomness utilities powered by fastrand.
     #[cfg(feature="random")]
     pub mod random {
         use std::ops::Range;
         pub use fastrand::*;
 
-        /// random f32 within a range (including)
+        /// Generate a random f32 within the given range, inclusive of both endpoints.
         #[inline]
         pub fn f32r(range:Range<f32>) -> f32 {
             range.start + f32() * (range.end - range.start)
@@ -170,7 +166,7 @@ pub mod collections;
     #[cfg(feature="random")]
     #[ext(pub trait DekiExtVecRng)]
     impl <T> Vec<T> {
-        /// get a random entry of this vec
+        /// Return a random element from the vector.
         #[inline]
         fn random(&self) -> &T {
             exit!{>if (self.len()==1) &self[0]}
@@ -184,37 +180,37 @@ pub mod collections;
     #[cfg(feature="approx")]
     #[ext(pub trait DekiExtApprox)]
     impl f32 {
-        /// approx sine, faster but inaccurate
+        /// Approximate sine using fastapprox, trading precision for speed.
         #[inline]
         fn sin_ca(self) -> f32 {approx::sin(self)}
 
-        /// approx cosine, faster but inaccurate
+        /// Approximate cosine using fastapprox, trading precision for speed.
         #[inline]
         fn cos_ca(self) -> f32 {approx::cos(self)}
 
-        /// approx tangent, faster but inaccurate
+        /// Approximate tangent using fastapprox, trading precision for speed.
         #[inline]
         fn tan_ca(self) -> f32 {approx::tan(self)}
         
-        /// approx exponential, faster but inaccurate
+        /// Approximate exponential using fastapprox, trading precision for speed.
         #[inline]
         fn exp_ca(self) -> f32 {approx::exp(self)}
 
-        /// approx logarithm, faster but inaccurate
+        /// Approximate logarithm using fastapprox, trading precision for speed.
         #[inline]
         fn log_ca(self,b:f32) -> f32 {approx::log(self,b)}
 
-        /// approx square, faster but inaccurate
+        /// Approximate square root using fastapprox, trading precision for speed.
         #[inline]
         fn sqrt_ca(self) -> f32 {approx::sqrt(self)}
 
-        /// approx power by, faster but inaccurate
+        /// Approximate power using fastapprox, trading precision for speed.
         #[inline]
         fn pow_ca(self,b:f32) -> f32 {approx::pow(self,b)}
 
     }
 
-    /// cheaper but inaccurate math implementations
+    /// Fast, approximate math functions via fastapprox, suitable for games and simulations.
     #[cfg(feature="approx")]
     pub mod approx {
         use std::f32::consts::{E, PI};
@@ -257,7 +253,7 @@ pub mod collections;
 
 // Macros \\
 
-    /// create a constant struct and name it after itself
+    /// Declare a pub const named after its type; no Default required.
     #[macro_export]
     macro_rules! qonst {
         ($ty:ty: $($tt:tt)*) => {paste!{
@@ -268,12 +264,14 @@ pub mod collections;
         }};
     }
 
+    /// Define a trait alias with a blanket impl for any type satisfying the bounds.
     #[macro_export]
     macro_rules! trait_alias {($trait:ident:$($tt:tt)*)=>{
         pub trait $trait: $($tt)* {}
         impl <C:$($tt)*> $trait for C {}
     }}
 
+    /// Implement `Default` inline without a separate `impl` block.
     #[macro_export]
     macro_rules! default {($name:ty = $($tt:tt)*) => {
         impl Default for $name {

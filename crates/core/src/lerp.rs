@@ -4,9 +4,9 @@ use crate::*;
 
 // Linear Interpolation \\
 
-    /// Any type that implements necessary math traits for linear interpolation (lerp)
+    /// Linearly interpolate between two values using `Add`, `Sub`, `Mul<f32>`.
     pub trait Lerpable {
-        /// Perform linear interpolation
+        /// Interpolate from self toward to by fraction t in [0, 1].
         fn lerp(&self, to: Self, lerp: f32) -> Self;
     }
 
@@ -22,9 +22,9 @@ use crate::*;
         }
     }
 
-    /// Any type that implements necessary math traits for linear interpolation (lerp)
+    /// Like `Lerpable` but rounds with `mul_f32` for integer output.
     pub trait LerpableF32 {
-        /// Perform linear interpolation
+        /// Interpolate using mul_f32 rounding, mainly for integers.
         fn lerp(&self, to: Self, lerp: f32) -> Self;
     }
 
@@ -35,7 +35,7 @@ use crate::*;
             + Sub<Output = A>
             + MulF32,
     {
-        /// Wonky lerp, mainly meant for integers
+        /// Interpolate with mul_f32 rounding, mainly for integers.
         fn lerp(&self, to: Self, lerp: f32) -> Self {
             self.clone().add(to.sub(self.clone()).mul_f32(lerp))
         }
@@ -43,9 +43,9 @@ use crate::*;
 
 // Gated Linear Interpolation \\
 
-    /// Any type that implements necessary math traits for linear interpolation (lerp)
+    /// Interpolate toward a target and snap when within a threshold.
     pub trait Glerpable {
-        /// Perform linear interpolation or snap to a threshold, true if 'arrived'
+        /// Interpolate toward to, snapping when within thresh; returns true if arrived.
         fn glerp(&mut self, to: Self, lerp: f32, thresh: Self) -> bool;
     }
 
@@ -68,16 +68,13 @@ use crate::*;
 
 // Cycling Linear Interpolation \\
 
+    /// Interpolate cyclically, always taking the shortest wrapping path.
     pub trait Clerpable {
-        /// Get closest delta, whichever direction is closer
-        /// - assumes self and the target are inside range
+        /// Compute the shortest wrapping delta between self and to within [min, max).
         fn delta_qucy(&self, to: Self, min: Self, max: Self) -> Self;
-        /// Lerp to a value, auto-choosing which direction is fastest
-        /// - assumes self and the target are inside range
+        /// Lerp toward to along the shortest wrapping path within [min, max).
         fn lerp_qucy(&self, to: Self, lerp: f32, min: Self, max: Self) -> Self;
-        /// Lerp to a value, auto-choosing which direction is fastest, snaps to goal with
-        /// using a threshold
-        /// - assumes self and the target are inside range
+        /// Gated cyclic lerp: interpolates along the shortest path, snapping within thresh.
         fn glerp_qucy(&mut self, to: Self, lerp: f32, thresh: Self, min: Self, max: Self) -> bool;
     }
 
@@ -116,6 +113,7 @@ use crate::*;
 
 // Lerp by Steps \\
 
+    /// Move toward a target in fixed steps, returning true when arrived.
     pub trait Stepable {
         fn sterp(&mut self, to: Self, step: Self) -> bool;
     }
@@ -138,6 +136,7 @@ use crate::*;
 
 // Cyclic Lerp by Steps \\
 
+    /// Move toward a cyclic target in fixed steps, wrapping around a range.
     pub trait CycleStapable {
         fn sterp_qucy(&mut self, to: Self, step: Self, min: Self, max: Self) -> bool;
     }
@@ -162,12 +161,12 @@ use crate::*;
 
     #[ext(pub trait DekiExtF32)]
     impl f32 {
-        /// Quick easing (smooth-step): has to be within 0..=1, consider using .clamp_unit() if not sure
+        /// Apply smoothstep easing: an S-curve from 0 to 1 for `t` in `[0, 1]`.
         #[inline]
         fn smooth(self) -> f32 {
             self * self * (3. - 2. * self)
         }
-        /// Same as `clamp(0., 1.)`
+        /// Clamp the value to the unit interval [0, 1].
         #[inline]
         fn clamp_unit(self) -> f32 {
             self.clamp(0., 1.)
