@@ -94,7 +94,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         }).into()
     }
 
-    /// Quickly implement traits with a single required method.
+    /// Implement traits with a single required method.
     ///
     /// The trait must have exactly one method, and the impl body is named after the trait (snake_case).
     ///
@@ -152,8 +152,8 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         }.into()
     }
 
-    /// Quickly add a method to a type
-    /// - `#[imp(Struct)]`: for a owned type
+    /// Add a method to a type
+    /// - `#[imp(Struct)]`: for an owned type
     /// - `#[imp(Struct|Trait)]`: to impl a single-method trait
     /// - `#[imp(Struct|*)]`: for a foreign type (generates a new trait)
     #[proc_macro_attribute]
@@ -256,7 +256,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         }))
     }
 
-    /// Converts identifiers to different cases (snake, camel, scream, flat, upper, pascal).
+    /// Convert identifiers to different cases (snake, camel, scream, flat, upper, pascal)
     #[proc_macro]
     pub fn foname(token:CompilerTokens) -> CompilerTokens {
         foname_stream(token.into()).into()
