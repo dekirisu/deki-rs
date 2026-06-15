@@ -19,15 +19,21 @@ pub use {convert_case, proc_macro2, quote, syn};
 
 // Quick Implement Prepare \\
 
-    /// Quickly add a method to a type
-    /// - `#[imp(Struct)]`: for a owned type
+    /// Add a method to a type
+    /// - `#[imp(Struct)]`: for an owned type
+    /// - `#[imp(*Struct)]`: auto-create a unit struct
     /// - `#[imp(Struct|Trait)]`: to impl a single-method trait
     /// - `#[imp(Struct|*)]`: for a foreign type (generates a new trait)
     pub fn imp (attr:TokenStream,stream:TokenStream) -> TokenStream {
         let mut split = attr.peek_iter().split_punct('|');
         let mut iter = split.remove(0).peek_iter();
 
+        let unit = iter.peek_punct() == '*';
+        if unit {iter.next();}
+
         let name = iter.next().unwrap();
+        let unit = if unit { qt![pub struct #name;] } else { Default::default() };
+
         let gens: Generics = parse2(TokenStream::from_iter(iter)).unwrap();
         let (gen_impl,gen_typ,gen_where) = gens.split_for_impl();
 
@@ -43,7 +49,7 @@ pub use {convert_case, proc_macro2, quote, syn};
             }
         }
 
-        qt!( #new impl #gen_impl #trat #name #gen_typ #gen_where {#stream})
+        qt!( #unit #new impl #gen_impl #trat #name #gen_typ #gen_where {#stream} )
     }
 
 
@@ -64,7 +70,7 @@ pub use {convert_case, proc_macro2, quote, syn};
 
 // Neat Token Iterator \\
 
-    /// Token-level return: `None` = no progress, `Some` = value without progress, `Maybe` = progress with missing data.
+    /// A token-level return type.
     #[derive(Default)]
     pub enum Check<T,M> {#[default] None, Some(T), Maybe(M)}
 
@@ -198,7 +204,7 @@ pub use {convert_case, proc_macro2, quote, syn};
 
 // Stream Handling \\
 
-    /// Stream-level return: `None` = no progress, `Base` = original tokens, `Shift` = consumed tokens.
+    /// A stream-level return type.
     #[derive(Default)]
     pub enum Step<T,M> {#[default] None, Base(T), Shift(M)}
 
@@ -236,7 +242,7 @@ pub use {convert_case, proc_macro2, quote, syn};
 
     }
 
-    /// A peekable iterator over [`TokenTree`]s.
+    /// A peekable iterator over `TokenTree`s
     pub type PeekIter = Peekable<IntoIter>;
 
     #[ext(pub trait TreeIterExt)]
