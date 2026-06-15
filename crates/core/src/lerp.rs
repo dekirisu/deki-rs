@@ -4,7 +4,7 @@ use crate::*;
 
 // Linear Interpolation \\
 
-    /// Linearly interpolate between two values using `Add`, `Sub`, `Mul<f32>`.
+    /// Enable linear interpolation between two values using `Add`, `Sub`, `Mul<f32>`.
     pub trait Lerpable {
         /// Interpolate from self toward to by fraction t in [0, 1].
         ///
@@ -28,7 +28,7 @@ use crate::*;
         }
     }
 
-    /// Interpolate like `Lerpable` but round with `mul_f32` for integer output.
+    /// Enable linear interpolation with `mul_f32` rounding for integer output.
     pub trait LerpableF32 {
         /// Interpolate using `mul_f32` rounding.
         ///
@@ -56,9 +56,9 @@ use crate::*;
 
 // Gated Linear Interpolation \\
 
-    /// Interpolate toward a target and snap when within a threshold.
+    /// Enable gated linear interpolation toward a target.
     pub trait Glerpable {
-        /// Interpolate toward to, snapping when within thresh; returns true if arrived.
+        /// Interpolate toward to, snapping when within thresh; return true if arrived
         ///
         /// # Example
         /// ```
@@ -90,7 +90,7 @@ use crate::*;
 
 // Cycling Linear Interpolation \\
 
-    /// Interpolate cyclically, always taking the shortest wrapping path.
+    /// Enable cyclic linear interpolation along the shortest wrapping path.
     pub trait Clerpable {
         /// Compute the shortest wrapping delta between self and to within [min, max).
         ///

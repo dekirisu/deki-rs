@@ -25,7 +25,7 @@ pub mod collections;
 
 // Cycle Trait \\
 
-    /// Cycle through unit-variant enum variants with wrapping.
+    /// Enable cycling through unit-variant enum variants with wrapping.
     pub trait Cycle {
         /// Advance to next variant, wrapping to first.
         ///
@@ -55,7 +55,7 @@ pub mod collections;
 
 // Traits \\
 
-    /// Mark a type as `'static + Send + Sync` with a single bound.
+    /// Enable marking a type as `'static + Send + Sync` with a single bound.
     pub trait Syncable:'static+Send+Sync {}
     impl <T:'static+Send+Sync> Syncable for T {}
 
@@ -77,6 +77,14 @@ pub mod collections;
         fn clear(&mut self){*self = Self::default();}
     }
     impl <A:Default> DefaultClear for A {}
+
+    /// Enable collecting any `Iterator` into a `Vec`.
+    pub trait CollectShort: Iterator {
+        fn into_vec(self) -> Vec<Self::Item>;
+    }
+    impl <A:Iterator> CollectShort for A {
+        fn into_vec(self) -> Vec<Self::Item> { self.collect() }
+    }
 
 
 // Extensions \\
@@ -223,6 +231,18 @@ pub mod collections;
         }
     }
 
+
+// Vec Extensions \\<br>
+
+    /// Add wrapping index access to `Vec`.
+    #[ext(pub trait DekiExtVec)]
+    impl <T> Vec<T> {
+        /// Return a reference to the element at `idx`, wrapping around.
+        #[inline]
+        fn get_cycling(&self, idx: usize) -> &T {
+            &self[idx % self.len()]
+        }
+    }
 
 // Math \\
 

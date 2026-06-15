@@ -57,7 +57,7 @@ use crate::Constructor;
         pub fn values(&self) -> &[V] {
             &self.values
         }
-        /// Yields `(key, value)` pairs in insertion order.
+        /// Yield `(key, value)` pairs in insertion order.
         ///
         /// # Example
         /// ```
@@ -71,7 +71,7 @@ use crate::Constructor;
         pub fn iter(&self) -> Zip<Iter<'_, K>, Iter<'_, V>> {
             zip(self.keys.iter(), self.values.iter())
         }
-        /// Consumes the map, yielding `(key, value)` pairs in insertion order.
+        /// Consume the map, yielding `(key, value)` pairs in insertion order
         ///
         /// # Example
         /// ```

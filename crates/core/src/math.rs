@@ -53,7 +53,7 @@ impl f32 {
 
 // Private helpers \\
 
-/// Raise 2 to a floating point power using bit-hack.
+/// Raise 2 to a floating point power using bit-hack
 #[allow(clippy::excessive_precision, clippy::approx_constant)]
 #[inline]
 fn pow2_fast(p: f32) -> f32 {
