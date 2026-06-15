@@ -11,6 +11,9 @@ pub use derive_more;
 #[cfg(feature = "lerp")]
 pub mod lerp;
 
+#[cfg(feature="approx")]
+pub mod math;
+
 pub mod collections;
 
 
@@ -59,8 +62,8 @@ pub mod collections;
     pub trait Syncable:'static+Send+Sync {}
     impl <T:'static+Send+Sync> Syncable for T {}
 
-   /// Add `.clear()` to any `Default` type.
-   pub trait DefaultClear: Default {
+    /// Add `.clear()` to any `Default` type.
+    pub trait DefaultClear: Default {
         /// Reset to the default value.
         ///
         /// # Example
@@ -226,13 +229,13 @@ pub mod collections;
         /// Return a random element from the vector.
         #[inline]
         fn random(&self) -> &T {
-            exit!{>if (self.len()==1) &self[0]}
+            exit![>if (self.len()==1) &self[0]];
             &self[random::usize(0..self.len())]
         }
     }
 
 
-// Vec Extensions \\<br>
+// Vec Extensions \\
 
     /// Add wrapping index access to `Vec`.
     #[ext(pub trait DekiExtVec)]
@@ -243,11 +246,6 @@ pub mod collections;
             &self[idx % self.len()]
         }
     }
-
-// Math \\
-
-    #[cfg(feature="approx")]
-    pub mod math;
 
 
 // Macros \\

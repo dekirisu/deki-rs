@@ -138,10 +138,10 @@ pub use {convert_case, proc_macro2, quote, syn};
     impl <'a> Option<&'a TokenTree> {
 
         // Check Types
-        #[inline] fn is_any_punct(&self) -> bool {exit!{t=self}t.is_any_punct()}
-        #[inline] fn is_any_ident(&self) -> bool {exit!{t=self}t.is_any_ident()}
-        #[inline] fn is_any_group(&self) -> bool {exit!{t=self}t.is_any_group()}
-        #[inline] fn is_any_literal(&self) -> bool {exit!{t=self}t.is_any_literal()}
+        #[inline] fn is_any_punct(&self) -> bool {exit![t=self];t.is_any_punct()}
+        #[inline] fn is_any_ident(&self) -> bool {exit![t=self];t.is_any_ident()}
+        #[inline] fn is_any_group(&self) -> bool {exit![t=self];t.is_any_group()}
+        #[inline] fn is_any_literal(&self) -> bool {exit![t=self];t.is_any_literal()}
 
         // Check Unwraps
         #[inline] fn unwrap_punct(self) -> &'a Punct {unwrpr!(self.unwrap() = Punct)}
@@ -150,15 +150,15 @@ pub use {convert_case, proc_macro2, quote, syn};
         #[inline] fn unwrap_literal(self) -> &'a Literal {unwrpr!(self.unwrap() = Literal)}
 
         // Check Inner
-        #[inline] fn map_punct<O:Default,F:FnOnce(&Punct)->O>(&self,check:F) -> O {exit!{t=self}t.map_punct(check)}
-        #[inline] fn map_ident<O:Default,F:FnOnce(&Ident)->O>(&self,check:F) -> O {exit!{t=self}t.map_ident(check)}
-        #[inline] fn map_group<O:Default,F:FnOnce(&Group)->O>(&self,check:F) -> O {exit!{t=self}t.map_group(check)}
-        #[inline] fn map_literal<O:Default,F:FnOnce(&Literal)->O>(&self,check:F) -> O {exit!{t=self}t.map_literal(check)}
+        #[inline] fn map_punct<O:Default,F:FnOnce(&Punct)->O>(&self,check:F) -> O {exit![t=self];t.map_punct(check)}
+        #[inline] fn map_ident<O:Default,F:FnOnce(&Ident)->O>(&self,check:F) -> O {exit![t=self];t.map_ident(check)}
+        #[inline] fn map_group<O:Default,F:FnOnce(&Group)->O>(&self,check:F) -> O {exit![t=self];t.map_group(check)}
+        #[inline] fn map_literal<O:Default,F:FnOnce(&Literal)->O>(&self,check:F) -> O {exit![t=self];t.map_literal(check)}
 
         // Shortcuts
-        #[inline] fn is_numeric(&self) -> bool {exit!{t=self}t.is_numeric()}
-        #[inline] fn is_string(&self,text:&str) -> bool {exit!{t=self}t.is_string(text)}
-        #[inline] fn is_punct(&self,punct:char) -> bool {exit!{t=self}t.is_punct(punct)}
+        #[inline] fn is_numeric(&self) -> bool {exit![t=self];t.is_numeric()}
+        #[inline] fn is_string(&self,text:&str) -> bool {exit![t=self];t.is_string(text)}
+        #[inline] fn is_punct(&self,punct:char) -> bool {exit![t=self];t.is_punct(punct)}
 
     }
 
@@ -268,22 +268,22 @@ pub use {convert_case, proc_macro2, quote, syn};
 
         /// Consume and return the next token only if it's a numeric literal.
         fn next_if_num(&mut self) -> Option<Literal> {
-            exit!{if !self.peek().is_numeric()}
+            exit![if !self.peek().is_numeric()];
             self.next().map(|l|l.unwrap_literal())
         }
     
         /// Try parsing the next numeric literal as an f32.
         fn try_next_float(&mut self) -> Option<(f32,LitFloat)> {
-            exit!{lit = self.next_if_num()}
+            exit![lit = self.next_if_num()];
             let lit: LitFloat = lit.clone().into();
-            kill!{num = lit.base10_parse::<f32>()}
+            kill![num = lit.base10_parse::<f32>()];
             Some((num,lit))
         }
 
         /// Peek the next punctuation character; returns `'n'` as sentinel if not a punct.
         fn peek_punct(&mut self) -> char {
-            exit!{>(peek = self.peek())'n'}
-            exit!{>(*TokenTree::Punct(p) = peek)'n'}
+            exit![>(peek = self.peek())'n'];
+            exit![>(*TokenTree::Punct(p) = peek)'n'];
             p.as_char()
         }
 

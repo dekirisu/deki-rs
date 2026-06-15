@@ -179,8 +179,8 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
             let mut toki = tok.peek_iter();
             // Update Current Title
             let title = toki.peek().and_then(|t|{
-                exit!{*TokenTree::Group(g) = t}
-                exit!{*Delimiter::Bracket = g.delimiter()}
+                exit![*TokenTree::Group(g) = t];
+                exit![*Delimiter::Bracket = g.delimiter()];
                 Some(g.stream())
             });
             if let Some(title) = title {
@@ -199,10 +199,10 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         let mut asdf = qt![];
         for a in funcs {
             let mut aiter = a.peek_iter();
-            exit!{bb = aiter.next()}
-            exit!{atr = aiter.next(),unwrap_group()}
+            exit![bb = aiter.next()];
+            exit![atr = aiter.next(),unwrap_group()];
             let atr = atr.stream().peek_iter().split_punct(',');
-            next!{mchs = matches.remove(&bb.to_string())}
+            next![mchs = matches.remove(&bb.to_string())];
             let more = TokenStream::from_iter(aiter);
             asdf.extend(qt!(
                 pub fn #bb (&self #(,#atr)*) #more {
@@ -218,12 +218,12 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
 // Force Name \\
 
     fn foname_tree(t:&TokenTree) -> Option<TokenTree> {
-        exit!{*TokenTree::Group(g0) = t}
-        exit!{*Delimiter::Bracket = g0.delimiter()}
+        exit![*TokenTree::Group(g0) = t];
+        exit![*Delimiter::Bracket = g0.delimiter()];
         let mut g0 = g0.stream().as_vec();
-        exit!{if g0.len()!=1}
-        exit!{*TokenTree::Group(g1) = g0.pop().unwrap()}
-        exit!{*Delimiter::Parenthesis = g1.delimiter()}
+        exit![if g0.len()!=1];
+        exit![*TokenTree::Group(g1) = g0.pop().unwrap()];
+        exit![*Delimiter::Parenthesis = g1.delimiter()];
         let stream = g1.stream();
         let span = stream.span();
         let mut split = stream.peek_iter().split_punct('@');
@@ -262,7 +262,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         foname_stream(token.into()).into()
     }
 
-// Enum Field Count \\<br>
+// Enum Field Count \\
 
     /// Generate `fn field_count(&self) -> usize` for enums.
     #[proc_macro_derive(EnumFieldCount)]
@@ -292,7 +292,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         }}.into()
     }
 
-// Derive From \\<br>
+// Derive From \\
 
     /// Generate `impl From<A> for B` from function signatures.
     #[proc_macro]
@@ -316,7 +316,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         out.into()
     }
 
-// Derived Attribute \\<br>
+// Derived Attribute \\
 
     /// Batch-apply derive macros by name.
     ///
@@ -336,7 +336,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         let mut derives = std::collections::HashSet::new();
         let mut addattr = qt!();
         for token in attr.into_iter() {
-            next!{*TokenTree::Ident(name) = token}
+            next![*TokenTree::Ident(name) = token];
             let name = name.to_string();
             let list = match name.as_str() {
                 "_Serde" => vec!["serde::Serialize", "serde::Deserialize"],
@@ -359,7 +359,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         qt!{#[derive(#(#derives),*)] #addattr #stream}.into()
     }
 
-// Derive Math \\<br>
+// Derive Math \\
 
     /// Generate `impl Add/Sub/Mul/Div<A> for T` from function signatures.
     #[proc_macro]
