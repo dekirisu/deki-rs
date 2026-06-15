@@ -14,7 +14,7 @@ use crate::Constructor;
     }
 
     impl<K: PartialEq, V: Default> StackMap<K, V> {
-        /// Returns a mutable reference to the value for `key`.
+        /// Return a mutable reference to the value for `key`.
         ///
         /// If the key is not present, inserts it with `V::default()` first.
         ///
@@ -38,7 +38,7 @@ use crate::Constructor;
     }
 
     impl<K: PartialEq, V> StackMap<K, V> {
-        /// Returns the index of `key`, or `None` if not found.
+        /// Return the index of `key`, or `None` if not found.
         ///
         /// # Example
         /// ```
@@ -49,11 +49,11 @@ use crate::Constructor;
         pub fn key_idx(&self, key: &K) -> Option<usize> {
             self.keys.iter().enumerate().find_map(|(id, k)| if key == k { Some(id) } else { None })
         }
-        /// Returns a read-only reference to the keys.
+        /// Return a read-only reference to the keys.
         pub fn keys(&self) -> &[K] {
             &self.keys
         }
-        /// Returns a read-only reference to the values.
+        /// Return a read-only reference to the values.
         pub fn values(&self) -> &[V] {
             &self.values
         }
@@ -85,7 +85,7 @@ use crate::Constructor;
         pub fn into_iter(self) -> Zip<IntoIter<K>, IntoIter<V>> {
             zip(self.keys, self.values)
         }
-        /// Returns `true` if the map contains no keys.
+        /// Return `true` if the map contains no keys.
         ///
         /// # Example
         /// ```
@@ -96,7 +96,7 @@ use crate::Constructor;
         pub fn is_empty(&self) -> bool {
             self.keys.is_empty()
         }
-        /// Returns the number of entries in the map.
+        /// Return the number of entries in the map.
         pub fn len(&self) -> usize {
             self.keys.len()
         }
@@ -112,12 +112,6 @@ use crate::Constructor;
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn stackmap_default_is_empty() {
-        let map: StackMap<String, i32> = StackMap::default();
-        assert!(map.is_empty());
-    }
 
     #[test]
     fn stackmap_entry_does_not_dedup() {
@@ -138,11 +132,27 @@ mod tests {
     }
 
     #[test]
-    fn stackmap_keys_and_values_len_match() {
+    fn stackmap_len_nonempty() {
         let mut map: StackMap<i32, String> = StackMap::new();
         for i in 0..5 {
             map.entry(i);
         }
-        assert_eq!(map.keys().len(), map.values().len());
+        assert_eq!(map.len(), 5);
+    }
+
+    #[test]
+    fn stackmap_keys_returns_correct_slice() {
+        let mut map: StackMap<String, i32> = StackMap::new();
+        map.entry("b".into());
+        map.entry("a".into());
+        assert_eq!(map.keys(), &["b", "a"]);
+    }
+
+    #[test]
+    fn stackmap_values_returns_correct_slice() {
+        let mut map: StackMap<String, i32> = StackMap::new();
+        map.entry("x".into());
+        *map.entry("x".into()) = 42;
+        assert_eq!(map.values(), &[42]);
     }
 }

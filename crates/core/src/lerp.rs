@@ -28,9 +28,9 @@ use crate::*;
         }
     }
 
-    /// Like `Lerpable` but rounds with `mul_f32` for integer output.
+    /// Interpolate like `Lerpable` but round with `mul_f32` for integer output.
     pub trait LerpableF32 {
-        /// Interpolate using mul_f32 rounding, mainly for integers.
+        /// Interpolate using `mul_f32` rounding.
         ///
         /// # Example
         /// ```
@@ -113,7 +113,7 @@ use crate::*;
         /// assert_eq!(val, 0.9);  // 0.8 + 0.1 = 0.9
         /// ```
         fn lerp_qucy(&self, to: Self, lerp: f32, min: Self, max: Self) -> Self;
-        /// Gated cyclic lerp: interpolates along the shortest path, snapping within thresh.
+        /// Interpolate along the shortest path, snapping within thresh.
         ///
         /// # Example
         /// ```
@@ -209,6 +209,7 @@ use crate::*;
 
 // Goodies \\
 
+    /// Add convenience methods to `f32`.
     #[ext(pub trait DekiExtF32)]
     impl f32 {
         /// Apply smoothstep easing: an S-curve from 0 to 1 for `t` in `[0, 1]`.

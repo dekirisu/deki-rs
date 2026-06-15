@@ -38,6 +38,7 @@ jobs:
           - { name: "random", args: "--features random" }
           - { name: "approx", args: "--features approx" }
           - { name: "lerp", args: "--features lerp" }
+          - { name: "derive_more", args: "--features derive_more" }
           - { name: "all-features", args: "--all-features" }
       fail-fast: false
 

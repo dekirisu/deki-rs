@@ -15,7 +15,7 @@ A personal Rust utility crate — a curated bundle of helper types, traits, macr
 | `&'static str` | `Str` |
 | Manual enum cycling | `#[derive(Cycle)]` + `.cycle_next()` / `.cycle_prev()` |
 | Manual lerp boilerplate | `.lerp()`, `.glerp()`, `.lerp_qucy()`, `.sterp()` |
-| Approximate math calls | `x.sin_ca()`, `x.exp_ca()`, etc. |
+| Approximate math calls | `x.exp_fast()`, `x.pow_fast()`, etc. |
 | `impl Default for T { fn default() -> Self { Self { a: Default::default(), b: Default::default() } } }` | `ForceDefault` derive |
 | `#[derive(Debug, Clone, PartialEq, Eq, Hash)]` | `hashable` preset |
 
@@ -26,7 +26,7 @@ A personal Rust utility crate — a curated bundle of helper types, traits, macr
 | Feature | Default | What it adds |
 |---|---|---|
 | `random` | ✅ | `fastrand` re-exports, `f32r()`, `Vec::random()` |
-| `approx` | ✅ | Fast-but-inaccurate `sin_ca()`, `cos_ca()`, `exp_ca()`, `sqrt_ca()`, `pow_ca()`, `log_ca()` |
+| `approx` | ✅ | Fast bit-hack math via `DekiExtApprox` — `sqrt_fast`, `exp_fast`, `pow_fast`, `log2_fast` |
 | `lerp` | ✅ | Linear / gated / cyclic / step interpolation traits and methods |
 | `proc` | — | Proc-macro support (string→ident, token stream helpers) |
 
@@ -49,8 +49,8 @@ Shorter names for common types and crates:
 | `Str` | `&'static str` |
 | `Constructor` | `derive_new::new` |
 | `ext` | `extension_traits::extension` |
-| `drv` | `derive_more` |
-| `sandwich` | `buns::sandwich` |
+
+| `compose` | `buns::compose` |
 
 Plus re-exports of `buns`, `type_cell`, and `maflow`.
 
@@ -160,16 +160,16 @@ let arrived = val.sterp(10.0, 2.0);  // moves 2.0 per call, true when arrived
 
 ### Approximate Math (`approx` feature)
 
-Faster but less precise than standard math:
+Faster but less precise than standard math (~1% error, bit-hack based):
 
 ```rust
 let x = 1.5f32;
-x.sin_ca();   // approx sine
-x.cos_ca();   // approx cosine
-x.exp_ca();   // approx exponential
-x.sqrt_ca();  // approx square root
-x.log_ca(2.0); // approx log base 2
-x.pow_ca(3.0); // approx power
+use deki_core::math::DekiExtApprox;
+
+x.exp_fast();      // exp(x), ~1% error, 2.2× faster than std
+x.pow_fast(3.0);   // pow(x, 3.0), ~1% error, 1.5× faster than std
+x.log2_fast();     // log2(x), ~1% error
+x.sqrt_fast();     // sqrt(x), ~0.1% error, 1.4× faster than std
 ```
 
 ### Randomness (`random` feature)

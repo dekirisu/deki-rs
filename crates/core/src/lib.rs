@@ -130,7 +130,7 @@ pub mod collections;
         }
     } #sub #add }
 
-    /// Cycling addition/subtraction for numeric types within a range.
+    /// Perform cycling addition/subtraction for numeric types within a range.
     pub trait CycleMath {
         /// Add within [min, max), wrapping around.
         ///
@@ -171,6 +171,7 @@ pub mod collections;
 
 // Combined f32 Multiplication \\
 
+    /// Multiply numeric types by f32 with rounding.
     #[ext(pub trait MulF32)]
     impl f32 {
         #[inline]
@@ -196,7 +197,7 @@ pub mod collections;
 
 // Randomness \\
 
-    /// Fast randomness utilities powered by fastrand.
+    /// Random number generation via fastrand.
     #[cfg(feature="random")]
     pub mod random {
         use std::ops::Range;
@@ -210,6 +211,7 @@ pub mod collections;
 
     }
 
+    /// Add random element access to `Vec`.
     #[cfg(feature="random")]
     #[ext(pub trait DekiExtVecRng)]
     impl <T> Vec<T> {
@@ -222,80 +224,10 @@ pub mod collections;
     }
 
 
-// Approx Math \\
+// Math \\
 
     #[cfg(feature="approx")]
-    #[ext(pub trait DekiExtApprox)]
-    impl f32 {
-        /// Approximate sine using fastapprox, trading precision for speed.
-        #[inline]
-        fn sin_ca(self) -> f32 {approx::sin(self)}
-
-        /// Approximate cosine using fastapprox, trading precision for speed.
-        #[inline]
-        fn cos_ca(self) -> f32 {approx::cos(self)}
-
-        /// Approximate tangent using fastapprox, trading precision for speed.
-        #[inline]
-        fn tan_ca(self) -> f32 {approx::tan(self)}
-        
-        /// Approximate exponential using fastapprox, trading precision for speed.
-        #[inline]
-        fn exp_ca(self) -> f32 {approx::exp(self)}
-
-        /// Approximate logarithm using fastapprox, trading precision for speed.
-        #[inline]
-        fn log_ca(self,b:f32) -> f32 {approx::log(self,b)}
-
-        /// Approximate square root using fastapprox, trading precision for speed.
-        #[inline]
-        fn sqrt_ca(self) -> f32 {approx::sqrt(self)}
-
-        /// Approximate power using fastapprox, trading precision for speed.
-        #[inline]
-        fn pow_ca(self,b:f32) -> f32 {approx::pow(self,b)}
-
-    }
-
-    /// Fast, approximate math functions via fastapprox, suitable for games and simulations.
-    #[cfg(feature="approx")]
-    pub mod approx {
-        use std::f32::consts::{E, PI};
-        use fastapprox::faster as approx;
-
-        #[inline]
-        pub fn sin(a:f32) -> f32 {approx::sin(pi_clamp(a))}
-        #[inline]
-        pub fn cos(a:f32) -> f32 {approx::cos(pi_clamp(a))}
-        #[inline]
-        pub fn tan(a:f32) -> f32 {approx::tan(pih_clamp(a))}
-        #[inline]
-        pub fn exp(a:f32) -> f32 {approx::exp(a)}
-        #[inline]
-        pub fn log(a:f32,b:f32) -> f32 { 
-            if (b - 2.).abs() < 1e-3 {approx::log2(a)} 
-            else if (b - E).abs() < 1e-3 {approx::ln(a)} 
-            else {a.log(b)}
-        }
-        #[inline]
-        pub fn sqrt(a:f32) -> f32 {approx::pow(a,0.5)}
-        #[inline]
-        pub fn pow(a:f32,b:f32) -> f32 {approx::pow(a,b)}
-        
-        const PI2: f32 = PI*2.;
-        fn pi_clamp(i:f32) -> f32 {sym_clamp(i,PI,PI2)}
-
-        const PI2H: f32 = PI/2.;
-        fn pih_clamp(i:f32) -> f32 {sym_clamp(i,PI2H,PI)}
-
-        fn sym_clamp(i:f32,limit:f32,limit2:f32) -> f32 {
-            let mut a = i % limit2;
-            if a > limit && a < limit2 
-                {a += -limit2;} 
-            a
-        }
-
-    }
+    pub mod math;
 
 
 // Macros \\

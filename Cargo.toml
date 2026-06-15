@@ -37,10 +37,11 @@ maflow = "0.1"
 extension-traits = "2.0.0"
 
 [features]
-default = ["random","approx","lerp"]
+default = ["random","approx","lerp","derive_more"]
 random = ["deki_core/random"]
 approx = ["deki_core/approx"]
 lerp = ["deki_core/lerp"]
+derive_more = ["deki_core/derive_more"]
 proc = ["deki_proc"]
 
 [workspace]
