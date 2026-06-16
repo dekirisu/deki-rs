@@ -18,12 +18,12 @@ deki_proc = { workspace = true, optional = true }
 
 [workspace.dependencies.deki_core]
 path = "crates/core"
-version = "0.3.0"
+version = "0.2.0"
 default-features = false
 
 [workspace.dependencies.deki_macros]
 path = "crates/macros"
-version = "0.3.0"
+version = "0.2.0"
 
 [workspace.dependencies.deki_proc]
 path = "crates/proc"
