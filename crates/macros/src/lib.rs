@@ -260,7 +260,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         }))
     }
 
-    /// Convert identifiers to different cases (snake, camel, scream, flat, upper, pascal)
+
     #[proc_macro]
     pub fn foname(token:CompilerTokens) -> CompilerTokens {
         foname_stream(token.into()).into()

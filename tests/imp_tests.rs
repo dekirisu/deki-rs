@@ -129,3 +129,5 @@ fn imp_block_auto_trait() {
     let s = "auto".to_string();
     assert_eq!(StringGreetExt::greet(&s), "auto");
 }
+
+
