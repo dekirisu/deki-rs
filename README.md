@@ -7,20 +7,6 @@ A personal Rust utility crate — a curated bundle of helper types, traits, macr
 
 ---
 
-## What changes when you use `deki`?
-
-| Without `deki` | With `deki` |
-|---|---|
-| `std::marker::PhantomData` | `Ghost` |
-| `&'static str` | `Str` |
-| Manual enum cycling | `#[derive(Cycle)]` + `.cycle_next()` / `.cycle_prev()` |
-| Manual lerp boilerplate | `.lerp()`, `.glerp()`, `.lerp_qucy()`, `.sterp()` |
-| Approximate math calls | `x.exp_fast()`, `x.pow_fast()`, etc. |
-| `impl Default for T { fn default() -> Self { Self { a: Default::default(), b: Default::default() } } }` | `ForceDefault` derive |
-| `#[derive(Debug, Clone, PartialEq, Eq, Hash)]` | `hashable` preset |
-
----
-
 ## Features
 
 | Feature | Default | What it adds |
@@ -28,11 +14,12 @@ A personal Rust utility crate — a curated bundle of helper types, traits, macr
 | `random` | ✅ | `fastrand` re-exports, `f32r()`, `Vec::random()` |
 | `approx` | ✅ | Fast bit-hack math via `DekiExtApprox` — `sqrt_fast`, `exp_fast`, `pow_fast`, `log2_fast` |
 | `lerp` | ✅ | Linear / gated / cyclic / step interpolation traits and methods |
+| `derive_more` | ✅ | Full `derive_more` re-export (Debug, Clone, PartialEq, etc.) |
 | `proc` | — | Proc-macro support (string→ident, token stream helpers) |
 
 ```toml
 [dependencies]
-deki = { version = "0.3", default-features = false, features = ["random", "lerp"] }
+deki = { version = "0.4", default-features = false, features = ["random", "lerp"] }
 ```
 
 ---
@@ -47,7 +34,7 @@ Shorter names for common types and crates:
 |---|---|
 | `Ghost` | `PhantomData` |
 | `Str` | `&'static str` |
-| `Constructor` | `derive_new::new` |
+| `New` | `derive_new::new` |
 | `ext` | `extension_traits::extension` |
 
 | `compose` | `buns::compose` |
@@ -62,7 +49,7 @@ Use as a bound instead of writing `'static + Send + Sync` everywhere:
 fn spawn<T: Syncable>(val: T) { ... }
 ```
 
-### `DefaultClear` — Clear Any Default Type
+### `DefaultClear` — Reset Any Default Type
 
 Adds `.clear()` to any `Default` type:
 
@@ -82,7 +69,7 @@ state.clear();  // resets to MyState::default()
 A map that preserves insertion order and allows duplicate keys:
 
 ```rust
-let mut map = StackMap::<&str, i32>::new();
+let mut map: StackMap<&str, i32> = Default::default();
 *map.entry("count") = 42;
 assert_eq!(*map.entry("count"), 42);
 
@@ -148,7 +135,7 @@ let arrived = val.glerp(10.0, 0.1, 0.5);  // snaps when within 0.5 of target
 use deki::lerp::Clerpable;
 
 let val: f32 = 0.0.lerp_qucy(0.9, 0.1, 0.0, 1.0);
-// Result: 0.9 (not -0.1) — picks the shorter path
+// Result: 0.99 (not 0.09) — picks the shorter path
 ```
 
 #### Step Interpolation
@@ -274,7 +261,9 @@ quimp!{MyWrapper
 }
 ```
 
-### `#[imp(...)]` — Attach Methods to Types
+### `#[imp(...)]` — Attach Methods to Types or Impl Blocks
+
+Function-level syntax:
 
 ```rust
 #[imp(MyStruct)]
@@ -291,6 +280,26 @@ For foreign types, use `*` to auto-generate a trait:
 fn trim_all(&self) -> Self { self.trim().to_string() }
 // Generates: trait StringTrimAllExt { fn trim_all(&self) -> Self; }
 // and impls it for String
+```
+
+Impl block syntax:
+
+```rust
+#[imp(TraitName)]
+impl String {
+    fn greet(&self) -> Self { self.clone() }
+}
+
+#[imp(*NewTraitName)]
+impl String {
+    fn new_method(&self) -> Self { self.clone() }
+}
+
+#[imp(*)]
+impl String {
+    fn auto_method(&self) -> Self { self.clone() }
+}
+// Auto-generates: StringAutoMethodExt
 ```
 
 ### `match_fns!` — Declarative Enum Methods
@@ -311,6 +320,74 @@ match_fns!{
     shape: "cube";
     color: "just-green";
 }
+```
+
+### `#[derive(EnumFieldCount)]` — Count Enum Variant Fields
+
+Generates `fn field_count(&self) -> usize` for enums:
+
+```rust
+use deki_macros::EnumFieldCount;
+
+#[derive(EnumFieldCount)]
+enum Color { Red, Green(Rgb), Blue(u8, u8, u8) }
+
+assert_eq!(Color::Red.field_count(), 0);
+assert_eq!(Color::Green(Rgb { r: 0, g: 0, b: 0 }).field_count(), 1);
+assert_eq!(Color::Blue(0, 0, 0).field_count(), 3);
+```
+
+### `derive_from!` — Generate `From` Impl
+
+Generate `impl From<A> for B` from function signatures:
+
+```rust
+struct Wrapper(i32);
+impl Wrapper {
+    fn new(v: i32) -> Self { Self(v) }
+    fn from_str(s: &str) -> Self { Self(s.len() as i32) }
+}
+
+derive_from!{
+    Wrapper
+    i32 -> new;
+    String -> from_str;
+}
+
+let w: Wrapper = (42).into();
+assert_eq!(w.0, 42);
+```
+
+### `derive_math!` — Generate Arithmetic Impl
+
+Generate `impl Add/Sub/Mul/Div<A> for T` from function signatures:
+
+```rust
+#[derive(Debug, PartialEq)]
+struct Vec2 { x: f32, y: f32 }
+
+derive_math!{
+    Vec2
+    Add: Vec2 -> Vec2 -> self.x + rhs.x, self.y + rhs.y -> Vec2;
+    Add: f32 -> f32 -> self.x + rhs, self.y + rhs -> Vec2;
+    Mul: f32 -> f32 -> self.x * rhs, self.y * rhs -> Vec2;
+}
+
+let a = Vec2 { x: 1.0, y: 2.0 };
+let b = Vec2 { x: 3.0, y: 4.0 };
+assert!((a + b).x - 4.0 < 1e-5);
+```
+
+### `#[derived(...)]` — Batch Apply Derives
+
+Batch-apply derive macros by name:
+
+```rust
+use deki_macros::derived;
+
+#[derived(_Hashable)]
+struct Point { x: i32, y: i32 }
+// => #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 ```
 
 ### `foname!` — Name Mangling
