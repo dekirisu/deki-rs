@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 description = "A collection of crates, functions and renames tailored to myself!"
 repository = "https://github.com/dekirisu/deki-rs/"
 documentation = "https://docs.rs/deki_core"
-categories = ["development-tools", "utilities"]
+categories = ["development-tools"]
 keywords = ["utility", "helpers", "math"]
 
 [dependencies]

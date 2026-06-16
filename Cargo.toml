@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 description = "A base for most of my rust projects (tailored to myself)!"
 repository = "https://github.com/dekirisu/deki-rs/"
 documentation = "https://docs.rs/deki"
-categories = ["development-tools", "utilities"]
+categories = ["development-tools"]
 keywords = ["utility", "macros", "helpers"]
 
 [dependencies]
