@@ -1,7 +1,8 @@
 # deki-rs
 
 [![GitHub](https://img.shields.io/badge/github-dekirisu/deki-ee6677)](https://github.com/dekirisu/deki-rs/)
-[![crates.io](https://img.shields.io/crates/v/deki_macros)](https://crates.io/crates/deki_macros)
+[![crates.io](https://img.shields.io/crates/v/deki)](https://crates.io/crates/deki)
+[![CI](https://github.com/dekirisu/deki-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/dekirisu/deki-rs/actions/workflows/ci.yml)
 
 A personal Rust utility crate — a curated bundle of helper types, traits, macros, and re-exports that change how you write Rust. Less boilerplate, more flow.
 
