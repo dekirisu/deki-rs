@@ -1,10 +1,25 @@
 # deki-rs
 
 [![GitHub](https://img.shields.io/badge/github-dekirisu/deki-ee6677)](https://github.com/dekirisu/deki-rs/)
-[![crates.io](https://img.shields.io/crates/v/deki)](https://crates.io/crates/deki)
+[![crates.io](https://img.shields.io/badge/crates.io-deki-orange)](https://crates.io/crates/deki)
 [![CI](https://github.com/dekirisu/deki-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/dekirisu/deki-rs/actions/workflows/ci.yml)
 
-A personal Rust utility crate — a curated bundle of helper types, traits, macros, and re-exports that change how you write Rust. Less boilerplate, more flow.
+A personal Rust utility crate — helper types, traits, macros, and re-exports that reduce boilerplate.
+
+---
+
+## Quick Start
+
+```toml
+[dependencies]
+deki = { version = "0.4", features = ["random", "lerp"] }
+```
+
+```rust
+use deki::lerp::Lerpable;
+
+let val: f32 = 0.0.lerp(10.0, 0.5);  // 5.0
+```
 
 ---
 
@@ -18,56 +33,15 @@ A personal Rust utility crate — a curated bundle of helper types, traits, macr
 | `derive_more` | ✅ | Full `derive_more` re-export (Debug, Clone, PartialEq, etc.) |
 | `proc` | — | Proc-macro support (string→ident, token stream helpers) |
 
-```toml
-[dependencies]
-deki = { version = "0.4", default-features = false, features = ["random", "lerp"] }
-```
-
 ---
 
 ## deki_core — Runtime Utilities
 
-### Aliases
+### Core Types
 
-Shorter names for common types and crates:
+#### `StackMap<K, V>` — Insertion-Ordered Key-Value Map
 
-| Name | Is |
-|---|---|
-| `Ghost` | `PhantomData` |
-| `Str` | `&'static str` |
-| `New` | `derive_new::new` |
-| `ext` | `extension_traits::extension` |
-
-| `compose` | `buns::compose` |
-
-Plus re-exports of `buns`, `type_cell`, and `maflow`.
-
-### `Syncable` — `'static + Send + Sync` in One Word
-
-Use as a bound instead of writing `'static + Send + Sync` everywhere:
-
-```rust
-fn spawn<T: Syncable>(val: T) { ... }
-```
-
-### `DefaultClear` — Reset Any Default Type
-
-Adds `.clear()` to any `Default` type:
-
-```rust
-let mut buf = Vec::new();
-buf.clear();  // standard
-let mut map = HashMap::new();
-map.clear();  // standard
-
-// But also works for types where you just want to reset to default
-let mut state = MyState::default();
-state.clear();  // resets to MyState::default()
-```
-
-### `StackMap` — Insertion-Ordered Key-Value Map
-
-A map that preserves insertion order and allows duplicate keys:
+Preserves insertion order and allows duplicate keys. Keys stored in a `Vec` — linear search.
 
 ```rust
 let mut map: StackMap<&str, i32> = Default::default();
@@ -77,26 +51,113 @@ assert_eq!(*map.entry("count"), 42);
 for (key, value) in map.iter() { ... } // insertion order
 ```
 
-Keys are stored in a `Vec` — linear search, but preserves order and allows duplicates.
-
-### Cycling Math
-
-#### `#[derive(Cycle)]` — Auto-Cycling Enums
-
-Generates `cycle_next()` and `cycle_prev()` for enums:
+#### `Syncable` — `'static + Send + Sync` in One Word
 
 ```rust
-#[derive(Cycle)]
-enum Direction { North, East, South, West }
-
-let mut dir = Direction::North;
-dir = dir.cycle_next();  // East
-dir = dir.cycle_prev();  // North
+fn spawn<T: Syncable>(val: T) { ... }
 ```
 
-#### `add_qucy` / `sub_qucy` — Modular Arithmetic
+#### `DefaultClear` — Reset Any Default Type
 
-Fast modular arithmetic on any number type (assumes current value is in range):
+Adds `.clear()` to any `Default` type (resets to `Self::default()`).
+
+```rust
+let mut state = MyState::default();
+state.clear();  // resets to MyState::default()
+```
+
+#### Aliases
+
+| Name | Is |
+|---|---|
+| `Ghost` | `PhantomData` |
+| `Str` | `&'static str` |
+| `New` | `derive_new::new` |
+| `ext` | `extension_traits::extension` |
+
+Plus re-exports of `buns`, `type_cell`, and `maflow`.
+
+---
+
+### Math
+
+#### Approximate Math (`approx` feature)
+
+Fast bit-hack math (~1% error, bit-hack based):
+
+```rust
+use deki_core::math::DekiExtApprox;
+
+let x = 1.5f32;
+x.exp_fast();      // ~1% error, 2.2× faster than std
+x.pow_fast(3.0);   // ~1% error, 1.5× faster than std
+x.log2_fast();     // ~1% error
+x.sqrt_fast();     // ~0.1% error, 1.4× faster than std
+```
+
+#### Interpolation (`lerp` feature)
+
+**Linear Interpolation**
+
+```rust
+use deki::lerp::Lerpable;
+
+let val: f32 = 0.0.lerp(10.0, 0.5);       // 5.0
+
+// For integers (uses mul_f32 rounding)
+use deki::lerp::LerpableF32;
+let val: i32 = 0i32.lerp(100, 0.3);       // 30
+```
+
+**Gated Lerp — Snap When Close**
+
+```rust
+use deki::lerp::Glerpable;
+let mut val = 0.0f32;
+let arrived = val.glerp(10.0, 0.1, 0.5);  // snaps when within 0.5 of target
+```
+
+**Cyclic Lerp — Auto-Choose Shortest Direction**
+
+```rust
+use deki::lerp::Clerpable;
+
+let val: f32 = 0.0.lerp_qucy(0.9, 0.1, 0.0, 1.0);
+// Result: 0.99 (not 0.09) — picks the shorter path
+
+// Gated cyclic variant
+let mut val = 0.99f32;
+let arrived = val.glerp_qucy(0.0, 0.5, 0.05, 0.0, 1.0);  // snapped
+```
+
+**Step Interpolation**
+
+```rust
+use deki::lerp::Stepable;
+let mut val = 0.0f32;
+let arrived = val.sterp(10.0, 2.0);  // moves 2.0 per call, true when arrived
+```
+
+**Cyclic Step Interpolation**
+
+```rust
+use deki::lerp::CycleStapable;
+let mut val = 0.0f32;
+let arrived = val.sterp_qucy(0.9, 0.1, 0.0, 1.0);  // cyclic, moves 0.1 per call
+```
+
+**Easing**
+
+```rust
+let t = 0.5f32;
+let eased = t.smooth();  // smoothstep: t*t*(3-2*t)
+```
+
+#### Cycling Math
+
+**`add_qucy` / `sub_qucy` — Modular Arithmetic**
+
+Fast modular arithmetic (assumes current value is in range):
 
 ```rust
 // Circular buffer: advance index, wrap to 0 at capacity
@@ -106,59 +167,28 @@ let idx: usize = 99usize.add_qucy(1, 0, 100);  // 0
 let slot: i32 = 2i32.sub_qucy(3, 0, 10);  // 9
 ```
 
-#### `mul_f32` — Multiply Integer by f32
+**`mul_f32` — Multiply Integer by f32 (rounded)**
 
 ```rust
 let count: i32 = 5.mul_f32(2.5);  // 13 (rounded)
 ```
 
-### Interpolation (`lerp` feature)
+#### `#[derive(Cycle)]` — Auto-Cycling Enums
 
-#### Linear Interpolation
-
-```rust
-use deki::lerp::*;
-
-let val: f32 = 0.0.lerp(10.0, 0.5);       // 5.0
-let val: i32 = 0i32.lerp(100, 0.3);       // generic
-```
-
-#### Gated Lerp — Snap When Close
+Generates `cycle_next()` and `cycle_prev()` for unit-variant enums:
 
 ```rust
-let mut val = 0.0f32;
-let arrived = val.glerp(10.0, 0.1, 0.5);  // snaps when within 0.5 of target
+use deki_macros::Cycle;
+
+#[derive(Cycle)]
+enum Direction { North, East, South, West }
+
+let mut dir = Direction::North;
+dir = dir.cycle_next();  // East
+dir = dir.cycle_prev();  // North
 ```
 
-#### Cyclic Lerp — Auto-Choose Shortest Direction
-
-```rust
-use deki::lerp::Clerpable;
-
-let val: f32 = 0.0.lerp_qucy(0.9, 0.1, 0.0, 1.0);
-// Result: 0.99 (not 0.09) — picks the shorter path
-```
-
-#### Step Interpolation
-
-```rust
-let mut val = 0.0f32;
-let arrived = val.sterp(10.0, 2.0);  // moves 2.0 per call, true when arrived
-```
-
-### Approximate Math (`approx` feature)
-
-Faster but less precise than standard math (~1% error, bit-hack based):
-
-```rust
-let x = 1.5f32;
-use deki_core::math::DekiExtApprox;
-
-x.exp_fast();      // exp(x), ~1% error, 2.2× faster than std
-x.pow_fast(3.0);   // pow(x, 3.0), ~1% error, 1.5× faster than std
-x.log2_fast();     // log2(x), ~1% error
-x.sqrt_fast();     // sqrt(x), ~0.1% error, 1.4× faster than std
-```
+---
 
 ### Randomness (`random` feature)
 
@@ -166,8 +196,11 @@ x.sqrt_fast();     // sqrt(x), ~0.1% error, 1.4× faster than std
 use deki::random::*;
 
 let val: f32 = f32r(0.0..1.0);
-let random_item = my_vec.random();
+let my_vec = vec![1, 2, 3];
+let random_item = my_vec.random();  // picks a random element
 ```
+
+---
 
 ### Helper Macros
 
@@ -186,7 +219,7 @@ qonst!(Direction::North);
 #### `trait_alias!` — Trait Aliases
 
 ```rust
-trait_alias!(MyTrait: Clone + Send + Sync);
+deki_core::trait_alias!(MyTrait: Clone + Send + Sync);
 // => pub trait MyTrait: Clone + Send + Sync {}
 // => impl<C: Clone + Send + Sync> MyTrait for C {}
 ```
@@ -194,15 +227,8 @@ trait_alias!(MyTrait: Clone + Send + Sync);
 #### `default!` — Shorthand Default
 
 ```rust
-default!(MyStruct = Self { a: 0, b: Default::default() });
+deki_core::default!(MyStruct = Self { a: 0, b: Default::default() });
 // => impl Default for MyStruct { fn default() -> Self { Self { a: 0, b: Default::default() } } }
-```
-
-### Easing
-
-```rust
-let t = 0.5f32;
-let eased = t.smooth();  // smoothstep: t*t*(3-2*t)
 ```
 
 ---
@@ -213,7 +239,7 @@ let eased = t.smooth();  // smoothstep: t*t*(3-2*t)
 
 #### `#[derive(Cycle)]`
 
-Generates `cycle_next()` and `cycle_prev()` for enums. Works on unit variants only.
+Generates `cycle_next()` and `cycle_prev()` for unit-variant enums.
 
 ```rust
 #[derive(Cycle)]
@@ -230,40 +256,136 @@ struct Config { timeout: u32, name: String }
 // => Default produces Config { timeout: 0, name: String::default() }
 ```
 
-### `xoxo!` — Bool Pattern Matching
+#### `#[derive(EnumFieldCount)]`
+
+Generates `fn field_count(&self) -> usize` for enums:
 
 ```rust
-xoxo!{match [true, false, true] {
+use deki_macros::EnumFieldCount;
+
+#[derive(EnumFieldCount)]
+enum Color { Red, Green(Rgb), Blue(u8, u8, u8) }
+
+assert_eq!(Color::Red.field_count(), 0);
+assert_eq!(Color::Green(Rgb { r: 0, g: 0, b: 0 }).field_count(), 1);
+assert_eq!(Color::Blue(0, 0, 0).field_count(), 3);
+```
+
+---
+
+### Procedural Macros
+
+#### `xoxo!` — Bool Pattern Matching
+
+```rust
+deki_macros::xoxo!{match [true, false, true] {
     [O, O, O] => "all false",
     [X, O, X] => "first and last true",
     [_, _, _] => "default",
 }}
 ```
 
-### `quimp!` — Quick Trait Implementation
+#### `quimp!` — Quick Trait Implementation
 
 For traits with a single required method:
 
 ```rust
-quimp!{MyWrapper
+dekimacros::quimp!{MyWrapper
     fn clone(&self) -> Self { Self::new(self.0.clone()) };
     fn default() -> Self { Self::new(42) };
 }
 ```
 
-### `#[imp(...)]` — Attach Methods to Types or Impl Blocks
+#### `match_fns!` — Declarative Enum Methods
 
-Function-level syntax:
+```rust
+enum Object { RedSphere, GreenCube }
+
+deki_macros::match_fns!{
+    [Object]
+    shape() -> &'static str;
+    color(brightness: f32) -> &'static str;
+
+    [::RedSphere]
+    shape: "sphere";
+    color: if brightness > 0.5 { "bright-red" } else { "red" };
+
+    [::GreenCube]
+    shape: "cube";
+    color: "just-green";
+}
+```
+
+#### `derive_from!` — Generate `From` Impl
+
+Generate `impl From<A> for B` from function signatures:
+
+```rust
+struct Wrapper(i32);
+impl Wrapper {
+    fn new(v: i32) -> Self { Self(v) }
+    fn from_str(s: &str) -> Self { Self(s.len() as i32) }
+}
+
+deki_macros::derive_from!{
+    Wrapper
+    i32 -> new;
+    String -> from_str;
+}
+
+let w: Wrapper = (42).into();
+assert_eq!(w.0, 42);
+```
+
+#### `derive_math!` — Generate Arithmetic Impl
+
+Generate `impl Add/Sub/Mul/Div<A> for T` from function signatures:
+
+```rust
+#[derive(Debug, PartialEq)]
+struct Vec2 { x: f32, y: f32 }
+
+deki_macros::derive_math!{
+    Vec2
+    Add: Vec2 -> Vec2 -> self.x + rhs.x, self.y + rhs.y -> Vec2;
+    Add: f32 -> f32 -> self.x + rhs, self.y + rhs -> Vec2;
+    Mul: f32 -> f32 -> self.x * rhs, self.y * rhs -> Vec2;
+}
+
+let a = Vec2 { x: 1.0, y: 2.0 };
+let b = Vec2 { x: 3.0, y: 4.0 };
+assert!((a + b).x - 4.0 < 1e-5);
+```
+
+#### `foname!` — Name Mangling
+
+Converts identifiers to different cases:
+
+```rust
+deki_macros::foname!{ myFunctionName@snake }   // my_function_name
+deki_macros::foname!{ my_function_name@camel }  // myFunctionName
+deki_macros::foname!{ my_function_name@scream } // MY_FUNCTION_NAME
+deki_macros::foname!{ my_function_name@flat }   // myfunctionname
+deki_macros::foname!{ my_function_name@upper }  // MYFUNCTIONNAME
+```
+
+---
+
+### Attribute Macros
+
+#### `#[imp(...)]` — Attach Methods to Types or Impl Blocks
+
+**Function-level syntax:**
 
 ```rust
 #[imp(MyStruct)]
 fn new(value: i32) -> Self { Self { value } }
 
-#[imp(MyStruct|Clone)]
+#[imp(MyStruct|MyTrait)]
 fn clone(&self) -> Self { Self::new(self.value) }
 ```
 
-For foreign types, use `*` to auto-generate a trait:
+**Foreign types (auto-generates a trait):**
 
 ```rust
 #[imp(String|*)]
@@ -272,7 +394,7 @@ fn trim_all(&self) -> Self { self.trim().to_string() }
 // and impls it for String
 ```
 
-Impl block syntax:
+**Impl block syntax:**
 
 ```rust
 #[imp(TraitName)]
@@ -292,83 +414,7 @@ impl String {
 // Auto-generates: StringAutoMethodExt
 ```
 
-### `match_fns!` — Declarative Enum Methods
-
-```rust
-enum Object { RedSphere, GreenCube }
-
-match_fns!{
-    [Object]
-    shape() -> &'static str;
-    color(brightness: f32) -> &'static str;
-
-    [::RedSphere]
-    shape: "sphere";
-    color: if brightness > 0.5 { "bright-red" } else { "red" };
-
-    [::GreenCube]
-    shape: "cube";
-    color: "just-green";
-}
-```
-
-### `#[derive(EnumFieldCount)]` — Count Enum Variant Fields
-
-Generates `fn field_count(&self) -> usize` for enums:
-
-```rust
-use deki_macros::EnumFieldCount;
-
-#[derive(EnumFieldCount)]
-enum Color { Red, Green(Rgb), Blue(u8, u8, u8) }
-
-assert_eq!(Color::Red.field_count(), 0);
-assert_eq!(Color::Green(Rgb { r: 0, g: 0, b: 0 }).field_count(), 1);
-assert_eq!(Color::Blue(0, 0, 0).field_count(), 3);
-```
-
-### `derive_from!` — Generate `From` Impl
-
-Generate `impl From<A> for B` from function signatures:
-
-```rust
-struct Wrapper(i32);
-impl Wrapper {
-    fn new(v: i32) -> Self { Self(v) }
-    fn from_str(s: &str) -> Self { Self(s.len() as i32) }
-}
-
-derive_from!{
-    Wrapper
-    i32 -> new;
-    String -> from_str;
-}
-
-let w: Wrapper = (42).into();
-assert_eq!(w.0, 42);
-```
-
-### `derive_math!` — Generate Arithmetic Impl
-
-Generate `impl Add/Sub/Mul/Div<A> for T` from function signatures:
-
-```rust
-#[derive(Debug, PartialEq)]
-struct Vec2 { x: f32, y: f32 }
-
-derive_math!{
-    Vec2
-    Add: Vec2 -> Vec2 -> self.x + rhs.x, self.y + rhs.y -> Vec2;
-    Add: f32 -> f32 -> self.x + rhs, self.y + rhs -> Vec2;
-    Mul: f32 -> f32 -> self.x * rhs, self.y * rhs -> Vec2;
-}
-
-let a = Vec2 { x: 1.0, y: 2.0 };
-let b = Vec2 { x: 3.0, y: 4.0 };
-assert!((a + b).x - 4.0 < 1e-5);
-```
-
-### `#[derived(...)]` — Batch Apply Derives
+#### `#[derived(...)]` — Batch Apply Derives
 
 Batch-apply derive macros by name:
 
@@ -379,37 +425,6 @@ use deki_macros::derived;
 struct Point { x: i32, y: i32 }
 // => #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 ```
-
-### `foname!` — Name Mangling
-
-Converts identifiers to different cases:
-
-```rust
-foname!{ my_function_name@snake }   // my_function_name
-foname!{ my_function_name@camel }   // myFunctionName
-foname!{ my_function_name@scream }  // MY_FUNCTION_NAME
-foname!{ my_function_name@flat }    // myfunctionname
-foname!{ my_function_name@upper }   // MYFUNCTIONNAME
-```
-
----
-
-## Commit Conventions
-
-Commit messages use animal emojis to denote change type — yes, really. It's just for fun.
-
-| Emoji | Animal | Meaning |
-|---|---|---|
-| 🐤 | chick | **Add** — new code, features, macros, traits |
-| 🐋 | whale | **Dependency / version** — version bumps, optional deps, semver |
-| 🐍 | snake | **Functional refactor** — changes behavior or signatures |
-| 🦎 | lizard | **Structural refactor** — code moves, reorg, no behavior change |
-| 🦉 | owl | **Docs** — README, documentation |
-| 🐞 | bug | **Fix** — bug fixes |
-| 🐇 | rabbit | **Tests** — adding tests |
-| 🐣 | chickling | **Birth** — new crate |
-| 🐝 | bee | **Merge** — merge code between crates |
-| 🐜 | ant | **Cleanup** — tidying, removing dead code |
 
 ---
 
