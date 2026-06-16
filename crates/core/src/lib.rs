@@ -1,6 +1,7 @@
 use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
 
 pub use buns;
+use deki_macros::imp;
 pub use maflow::*;
 pub use paste;
 pub use type_cell::*;
@@ -20,7 +21,7 @@ pub mod collections;
 // Renames \\
 
     pub use std::marker::PhantomData as Ghost;
-    pub use derive_new::new as Constructor;
+    pub use derive_new::new as New;
     pub use extension_traits::extension as ext;
     pub use buns::compose;
     pub type Str = &'static str;
@@ -92,35 +93,31 @@ pub mod collections;
 
 // Extensions \\
 
-    /// Add a value to both bounds of a range.
-    #[ext(pub trait RangeOffset)]
-    impl <Idx:Clone+Add<Output=Idx>> RangeInclusive<Idx> {
-        /// Add a value to both bounds of the range.
-        ///
-        /// # Example
-        /// ```
-        /// use deki_core::RangeOffset;
-        /// let r = (0..=10).offset(5);
-        /// assert_eq!(r, 5..=15);
-        /// ```
-        fn offset(&self,rhs:Idx) -> Self {
-            self.start().clone()+rhs.clone()
-            ..=self.end().clone()+rhs.clone()
-        }
+    /// Add a value to both bounds of the range.
+    ///
+    /// # Example
+    /// ```
+    /// use deki_core::RangeOffset;
+    /// let r = (0..=10).offset(5);
+    /// assert_eq!(r, 5..=15);
+    /// ```
+    #[imp(RangeInclusive<Idx:Clone+Add<Output=Idx>>|*RangeOffset)]
+    fn offset(&self,rhs:Idx) -> Self {
+        self.start().clone()+rhs.clone()
+        ..=self.end().clone()+rhs.clone()
     }
 
-    impl <Idx:Clone+Add<Output=Idx>> RangeOffset<Idx> for Range<Idx> {
-        /// Add a value to both bounds of the range.
-        ///
-        /// # Example
-        /// ```
-        /// use deki_core::RangeOffset;
-        /// let r = (0..10).offset(5);
-        /// assert_eq!(r, 5..15);
-        /// ```
-        fn offset(&self,rhs:Idx) -> Self {
-            self.start.clone()+rhs.clone()..self.end.clone()+rhs.clone()
-        }
+    /// Add a value to both bounds of the range.
+    ///
+    /// # Example
+    /// ```
+    /// use deki_core::RangeOffset;
+    /// let r = (0..10).offset(5);
+    /// assert_eq!(r, 5..15);
+    /// ```
+    #[imp(Range<Idx:Clone+Add<Output=Idx>>|RangeOffset<Idx>)]
+    fn offset(&self,rhs:Idx) -> Self {
+        self.start.clone()+rhs.clone()..self.end.clone()+rhs.clone()
     }
 
 
@@ -182,19 +179,15 @@ pub mod collections;
 
 // Combined f32 Multiplication \\
 
-    /// Multiply numeric types by f32 with rounding.
-    #[ext(pub trait MulF32)]
-    impl f32 {
-        #[inline]
-        /// Multiply by an f32 and round to the nearest integer.
-        fn mul_f32(self,rhs:f32) -> Self {self * rhs}
-    }
+    /// Multiply by an f32 and round to the nearest integer.
+    #[inline]
+    #[imp(f32 | *MulF32)]
+    fn mul_f32(self,rhs:f32) -> Self {self * rhs}
 
-    impl MulF32 for f64 {
-        #[inline]
-        fn mul_f32(self,rhs:f32) -> Self {self * rhs as f64}
-    }
-
+    #[inline]
+    #[imp(f64 | MulF32)]
+    fn mul_f32(self,rhs:f32) -> Self {self * rhs as f64}
+ 
     compose!{
         impl MulF32 for ^0 {
             #[inline]
@@ -222,29 +215,23 @@ pub mod collections;
 
     }
 
-    /// Add random element access to `Vec`.
+    /// Return a random element from the vector.
     #[cfg(feature="random")]
-    #[ext(pub trait DekiExtVecRng)]
-    impl <T> Vec<T> {
-        /// Return a random element from the vector.
-        #[inline]
-        fn random(&self) -> &T {
-            exit![>if (self.len()==1) &self[0]];
-            &self[random::usize(0..self.len())]
-        }
+    #[inline]
+    #[imp(Vec<T> | *)]
+    fn random(&self) -> &T {
+        exit![>if (self.len()==1) &self[0]];
+        &self[random::usize(0..self.len())]
     }
 
 
 // Vec Extensions \\
 
-    /// Add wrapping index access to `Vec`.
-    #[ext(pub trait DekiExtVec)]
-    impl <T> Vec<T> {
-        /// Return a reference to the element at `idx`, wrapping around.
-        #[inline]
-        fn get_cycling(&self, idx: usize) -> &T {
-            &self[idx % self.len()]
-        }
+    /// Return a reference to the element at `idx`, wrapping around.
+    #[inline]
+    #[imp(Vec<T> | *)]
+    fn get_cycling(&self, idx: usize) -> &T {
+        &self[idx % self.len()]
     }
 
 

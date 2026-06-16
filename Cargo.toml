@@ -31,7 +31,8 @@ version = "0.3.0"
 
 [workspace.dependencies]
 quote = "1.0"
-syn = "2.0"
+syn.version = "2.0"
+syn.features = ["full"]
 proc-macro2 = "1.0"
 maflow = "0.1"
 extension-traits = "2.0.0"

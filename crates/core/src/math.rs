@@ -1,3 +1,4 @@
+use deki_macros::imp;
 use extension_traits::extension as ext;
 
 // Approximate math (~1% error, bit-hack based) \\
@@ -17,7 +18,7 @@ use extension_traits::extension as ext;
 /// assert!((x.sqrt_fast() - 0.7071).abs() < 0.01);
 /// ```
 #[allow(clippy::excessive_precision, clippy::approx_constant)]
-#[ext(pub trait DekiExtApprox)]
+#[imp(*DekiExtApprox)]
 impl f32 {
     /// Compute the approximate square root using bit-hack + 1 Newton-Raphson step (~0.1% error, 1.4× faster than std).
     #[inline]

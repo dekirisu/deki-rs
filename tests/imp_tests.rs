@@ -93,3 +93,39 @@ fn imp_multi_params() {
     assert_eq!(s.b, "test");
     assert!(s.c);
 }
+
+
+// Block \\
+
+#[imp(Greet)]
+impl String {
+    fn greet(&self) -> Self {self.clone()}
+}
+
+#[test]
+fn imp_block_impl_trait() {
+    let s = "hello".to_string();
+    assert_eq!(Greet::greet(&s), "hello");
+}
+
+#[imp(*GreetToo)]
+impl String {
+    fn greet_too(&self) -> Self {self.clone()}
+}
+
+#[test]
+fn imp_block_gen_trait() {
+    let s = "world".to_string();
+    assert_eq!(GreetToo::greet_too(&s), "world");
+}
+
+#[imp(*)]
+impl String {
+    fn greet(&self) -> Self {self.clone()}
+}
+
+#[test]
+fn imp_block_auto_trait() {
+    let s = "auto".to_string();
+    assert_eq!(StringGreetExt::greet(&s), "auto");
+}

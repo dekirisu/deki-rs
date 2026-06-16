@@ -3,7 +3,7 @@ use std::iter::Peekable;
 use extension_traits::extension as ext;
 use maflow::*;
 use proc_macro2::token_stream::IntoIter;
-use syn::*;
+use syn::{token::For, *};
 
 pub use {convert_case, proc_macro2, quote, syn};
 
@@ -19,38 +19,77 @@ pub use {convert_case, proc_macro2, quote, syn};
 
 // Quick Implement Prepare \\
 
-    /// Add a method to a type
-    /// - `#[imp(Struct)]`: for an owned type
-    /// - `#[imp(*Struct)]`: auto-create a unit struct
-    /// - `#[imp(Struct|Trait)]`: to impl a single-method trait
-    /// - `#[imp(Struct|*)]`: for a foreign type (generates a new trait)
-    pub fn imp (attr:TokenStream,stream:TokenStream) -> TokenStream {
-        let mut split = attr.peek_iter().split_punct('|');
-        let mut iter = split.remove(0).peek_iter();
-
-        let unit = iter.peek_punct() == '*';
-        if unit {iter.next();}
-
-        let name = iter.next().unwrap();
-        let unit = if unit { qt![pub struct #name;] } else { Default::default() };
-
-        let gens: Generics = parse2(TokenStream::from_iter(iter)).unwrap();
-        let (gen_impl,gen_typ,gen_where) = gens.split_for_impl();
-
-        let mut trat = qt!();
-        let mut new = qt!();
-        if let Some(tok) = split.pop() {
-            if tok.to_string().as_str() == "*" {
-                let fn_name = stream.clone().into_iter().nth(1).unwrap().to_string().to_case(Case::Pascal);
-                let ident = format!("{name}{fn_name}Ext").ident_span(tok.span());
-                new.extend(qt!(#[ext(pub trait #ident)]));
-            } else {
-                trat.extend(qt!(#tok for));
-            }
+    fn imp_hlpr(attr:TokenStream,imp_block:TokenStream) -> TokenStream {
+        let mut iter = attr.peek_iter();
+        let create_trait = iter.devour_punct('*');
+        let maybe_path = iter.peek().is_some().then_some(TokenStream::from_iter(iter));
+        let mut input: ItemImpl = syn::parse2(imp_block).unwrap();
+        let path_tok = maybe_path.unwrap_or_else(||{
+            let self_ty = input.self_ty.to_token_stream().to_string()
+                .chars().filter(|v|v.is_alphanumeric())
+                .collect::<String>().to_case(Case::Pascal);
+            let first_fn = input.items.iter().find_map(|a|match a {
+                ImplItem::Fn(a) => Some(a.sig.ident.to_string().to_case(Case::Pascal)), _=>None
+            }).unwrap();
+            (self_ty+&first_fn+"Ext").ident().into_token_stream()
+        });
+        let path: Path = parse2(path_tok).unwrap();
+        let mut out = qt![];
+        if !create_trait {
+            input.trait_ = Some((None,path.clone(),For::default()));
         }
-
-        qt!( #unit #new impl #gen_impl #trat #name #gen_typ #gen_where {#stream} )
+        out.extend(input.into_token_stream());
+        if create_trait {
+            out = qt![ #[ext(pub trait #path)] #out ];
+        }
+        out
     }
+
+    /// Add a method to a type or impl block:
+    /// - `#[imp(Struct)]` on fn: for an owned type
+    /// - `#[imp(*Struct)]` on fn: auto-create a unit struct
+    /// - `#[imp(Struct|Trait)]` on fn: impl a single-method trait
+    /// - `#[imp(Struct|*)]` on fn: foreign type (generates a new trait)
+    /// - `#[imp(TraitName)] impl Type { ... }`: impl an existing trait
+    /// - `#[imp(*NewTraitName)] impl Type { ... }`: generate trait + impl
+    /// - `#[imp(*)] impl Type { ... }`: auto-generate trait name + impl
+    pub fn imp (attr:TokenStream,stream:TokenStream) -> TokenStream {
+        let is_impl = stream.to_token_stream().into_iter().find(|v|v.is_string("impl")).is_some();
+        if is_impl {
+           imp_hlpr(attr,stream)
+        } else {
+            let mut split = attr.peek_iter().split_punct('|');
+            let mut iter = split.remove(0).peek_iter();
+            let create_unit = iter.devour_punct('*');
+            let name = iter.next().unwrap();
+            let gens: Generics = parse2(TokenStream::from_iter(iter)).unwrap();
+            let (gen_impl,gen_typ,gen_where) = gens.split_for_impl();
+            let mut imp_block = qt!( impl #gen_impl #name #gen_typ #gen_where {#stream} );
+            if let Some(tok) = split.pop() {
+                imp_block = imp_hlpr(tok,imp_block);
+            }
+            let unit = if create_unit { qt![pub struct #name;] } else { qt![] };
+            qt!{#unit #imp_block}
+
+
+//           let mut trat = qt!();
+//            let mut new = qt!();
+//            if let Some(tok) = split.pop() {
+//                let mut iter2 = tok.into_token_stream();
+//                let create_trait = iter.devour_punct('*');
+//                
+//                if tok.to_string().as_str() == "*" {
+//                    let fn_name = stream.clone().into_iter().nth(1).unwrap().to_string().to_case(Case::Pascal);
+//                    let ident = format!("{name}{fn_name}Ext").ident_span(tok.span());
+//                    new.extend(qt!(#[ext(pub trait #ident)]));
+//                } else {
+//                    trat.extend(qt!(#tok for));
+//                }
+//            }
+//
+//            qt!( #unit #new impl #gen_impl #trat #name #gen_typ #gen_where {#stream} )
+         }
+   }
 
 
 // String <> Ident \\
@@ -248,6 +287,13 @@ pub use {convert_case, proc_macro2, quote, syn};
     #[ext(pub trait TreeIterExt)]
     impl PeekIter {
 
+        // Devour
+        #[inline] fn devour_punct(&mut self,p:char) -> bool {self.next_if(|v|v.is_punct(p)).is_some()}
+        //#[inline] fn devour_ident(self) -> bool {..}
+        //#[inline] fn devour_group(self) -> bool {..}
+        //#[inline] fn devour_literal(self) -> bool {..}
+
+ 
         fn collect_til_punct(&mut self,punct:char) -> Vec<TokenTree> {
             let mut out = vec![];
             while let Some(a) = self.next_if(|a|!a.is_punct(punct)){

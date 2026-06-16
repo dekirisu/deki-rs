@@ -16,9 +16,8 @@ use crate::*;
         fn lerp(&self, to: Self, lerp: f32) -> Self;
     }
 
-    impl<A> Lerpable for A
-    where
-        A: Clone
+    impl <A> Lerpable for A 
+    where A: Clone
             + Add<Output = A>
             + Sub<Output = A>
             + Mul<f32, Output = A>,
@@ -43,8 +42,7 @@ use crate::*;
     }
 
     impl<A> LerpableF32 for A
-    where
-        A: Clone
+    where A: Clone
             + Add<Output = A>
             + Sub<Output = A>
             + MulF32,
@@ -210,13 +208,13 @@ use crate::*;
 // Goodies \\
 
     /// Add convenience methods to `f32`.
-    #[ext(pub trait DekiExtF32)]
+    #[imp(*)]
     impl f32 {
         /// Apply smoothstep easing: an S-curve from 0 to 1 for `t` in `[0, 1]`.
         ///
         /// # Example
         /// ```
-        /// use deki_core::lerp::DekiExtF32;
+        /// use deki_core::lerp::F32SmoothExt;
         /// assert_eq!(0.0_f32.smooth(), 0.0);
         /// assert_eq!(0.25_f32.smooth(), 0.15625);
         /// assert_eq!(0.5_f32.smooth(), 0.5);
@@ -231,7 +229,7 @@ use crate::*;
         ///
         /// # Example
         /// ```
-        /// use deki_core::lerp::DekiExtF32;
+        /// use deki_core::lerp::F32SmoothExt;
         ///
         /// // in-range
         /// assert_eq!(0.5_f32.clamp_unit(), 0.5);

@@ -1,39 +1,35 @@
 use std::{iter::{zip, Zip}, slice::Iter, vec::IntoIter};
-use crate::Constructor;
-
+use deki_macros::{ForceDefault, imp};
 
 // StackMap \\
 
     /// A key-value map that preserves insertion order.
-    #[derive(Constructor)]
+    #[derive(ForceDefault)]
     pub struct StackMap<K: PartialEq, V> {
-        #[new(default)]
         keys: Vec<K>,
-        #[new(default)]
         values: Vec<V>,
     }
 
-    impl<K: PartialEq, V: Default> StackMap<K, V> {
-        /// Return a mutable reference to the value for `key`.
-        ///
-        /// If the key is not present, inserts it with `V::default()` first.
-        ///
-        /// # Example
-        /// ```
-        /// use deki_core::collections::StackMap;
-        /// let mut map = StackMap::<&str,i32>::new();
-        /// *map.entry("count") = 1;
-        /// assert_eq!(*map.entry("count"), 1);
-        /// ```
-        pub fn entry(&mut self, key: K) -> &mut V {
-            match self.key_idx(&key) {
-                None => {
-                    self.keys.push(key);
-                    self.values.push(V::default());
-                    self.values.last_mut().unwrap()
-                }
-                Some(id) => &mut self.values[id],
+    /// Return a mutable reference to the value for `key`.
+    ///
+    /// If the key is not present, inserts it with `V::default()` first.
+    ///
+    /// # Example
+    /// ```
+    /// use deki_core::collections::StackMap;
+    /// let mut map: StackMap<&str, i32> = Default::default();
+    /// *map.entry("count") = 1;
+    /// assert_eq!(*map.entry("count"), 1);
+    /// ```
+    #[imp(StackMap<K:PartialEq,V:Default>)]
+    pub fn entry(&mut self,key:K) -> &mut V {
+        match self.key_idx(&key) {
+            None => {
+                self.keys.push(key);
+                self.values.push(V::default());
+                self.values.last_mut().unwrap()
             }
+            Some(id) => &mut self.values[id],
         }
     }
 
@@ -43,7 +39,7 @@ use crate::Constructor;
         /// # Example
         /// ```
         /// use deki_core::collections::StackMap;
-        /// let map = StackMap::<&str,i32>::new();
+        /// let map: StackMap<&str, i32> = Default::default();
         /// assert_eq!(map.key_idx(&"missing"), None);
         /// ```
         pub fn key_idx(&self, key: &K) -> Option<usize> {
@@ -62,7 +58,7 @@ use crate::Constructor;
         /// # Example
         /// ```
         /// use deki_core::collections::StackMap;
-        /// let mut map = StackMap::<&str,i32>::new();
+        /// let mut map: StackMap<&str, i32> = Default::default();
         /// map.entry("a");
         /// map.entry("b");
         /// let keys: Vec<_> = map.iter().map(|(k, _)| *k).collect();
@@ -76,7 +72,7 @@ use crate::Constructor;
         /// # Example
         /// ```
         /// use deki_core::collections::StackMap;
-        /// let mut map = StackMap::<&str,i32>::new();
+        /// let mut map: StackMap<&str, i32> = Default::default();
         /// *map.entry("x") = 1;
         /// let pairs: Vec<_> = map.into_iter().collect();
         /// assert_eq!(pairs, vec![("x", 1)]);
@@ -90,7 +86,7 @@ use crate::Constructor;
         /// # Example
         /// ```
         /// use deki_core::collections::StackMap;
-        /// let map = StackMap::<&str,i32>::new();
+        /// let map: StackMap<&str, i32> = Default::default();
         /// assert!(map.is_empty());
         /// ```
         pub fn is_empty(&self) -> bool {
@@ -102,10 +98,6 @@ use crate::Constructor;
         }
     }
 
-    impl<K: PartialEq, V: Default> Default for StackMap<K, V> {
-        fn default() -> Self { Self::new() }
-    }
-
 
 // Tests \\
 
@@ -115,7 +107,7 @@ mod tests {
 
     #[test]
     fn stackmap_entry_does_not_dedup() {
-        let mut map: StackMap<String, i32> = StackMap::new();
+        let mut map: StackMap<String, i32> = StackMap::default();
         map.entry("a".into());
         map.entry("a".into());
         assert_eq!(map.key_idx(&"a".into()), Some(0));
@@ -123,7 +115,7 @@ mod tests {
 
     #[test]
     fn stackmap_keys_keep_insertion_order() {
-        let mut map: StackMap<String, i32> = StackMap::new();
+        let mut map: StackMap<String, i32> = StackMap::default();
         map.entry("z".into());
         map.entry("a".into());
         map.entry("m".into());
@@ -133,7 +125,7 @@ mod tests {
 
     #[test]
     fn stackmap_len_nonempty() {
-        let mut map: StackMap<i32, String> = StackMap::new();
+        let mut map: StackMap<i32, String> = StackMap::default();
         for i in 0..5 {
             map.entry(i);
         }
@@ -142,7 +134,7 @@ mod tests {
 
     #[test]
     fn stackmap_keys_returns_correct_slice() {
-        let mut map: StackMap<String, i32> = StackMap::new();
+        let mut map: StackMap<String, i32> = StackMap::default();
         map.entry("b".into());
         map.entry("a".into());
         assert_eq!(map.keys(), &["b", "a"]);
@@ -150,7 +142,7 @@ mod tests {
 
     #[test]
     fn stackmap_values_returns_correct_slice() {
-        let mut map: StackMap<String, i32> = StackMap::new();
+        let mut map: StackMap<String, i32> = StackMap::default();
         map.entry("x".into());
         *map.entry("x".into()) = 42;
         assert_eq!(map.values(), &[42]);

@@ -62,7 +62,7 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
             let name = field.ident.clone()
                 .map(|a|a.into_token_stream())
                 .unwrap_or(qt![#idx]);
-            mults.push(qt![#name:default()]);
+            mults.push(qt![#name:Default::default()]);
         }
     }
     qt!{impl #imp Default for #ident #typ #wher {
@@ -152,10 +152,14 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         }.into()
     }
 
-    /// Add a method to a type
-    /// - `#[imp(Struct)]`: for an owned type
-    /// - `#[imp(Struct|Trait)]`: to impl a single-method trait
-    /// - `#[imp(Struct|*)]`: for a foreign type (generates a new trait)
+    /// Add a method to a type or impl block:
+    /// - `#[imp(Struct)]` on fn: for an owned type
+    /// - `#[imp(*Struct)]` on fn: auto-create a unit struct
+    /// - `#[imp(Struct|Trait)]` on fn: impl a single-method trait
+    /// - `#[imp(Struct|*)]` on fn: foreign type (generates a new trait)
+    /// - `#[imp(TraitName)] impl Type { ... }`: impl an existing trait
+    /// - `#[imp(*NewTraitName)] impl Type { ... }`: generate trait + impl
+    /// - `#[imp(*)] impl Type { ... }`: auto-generate trait name + impl
     #[proc_macro_attribute]
     pub fn imp (attr:CompilerTokens,item:CompilerTokens) -> CompilerTokens {
         let item: TokenStream = item.into();
