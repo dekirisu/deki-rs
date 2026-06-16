@@ -13,13 +13,6 @@ use proc_macro::TokenStream as CompilerTokens;
 use quote::quote as qt;
 use syn::{parse_macro_input, Data, DeriveInput, spanned::Spanned};
 
-derive_preset::create!{
-    hashable    "PartialEq,Eq,Hash,Clone,Copy"
-    serde       "Serialize,Deserialize,Clone"
-    serde_hash  "Serialize,Deserialize,PartialEq,Eq,Hash,Clone,Copy"
-    deref       "drv::Deref,drv::DerefMut"
-}
-
 /// Generate `cycle_next()` and `cycle_prev()` for unit-variant enums.
 #[proc_macro_derive(Cycle)]
 pub fn cycle(input:CompilerTokens) -> CompilerTokens {

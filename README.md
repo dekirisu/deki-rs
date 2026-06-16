@@ -230,17 +230,6 @@ struct Config { timeout: u32, name: String }
 // => Default produces Config { timeout: 0, name: String::default() }
 ```
 
-### Preset Derives (via `derive_preset`)
-
-```rust
-derive_preset::create!{
-    hashable    "PartialEq,Eq,Hash,Clone,Copy"
-    serde       "Serialize,Deserialize,Clone"
-    serde_hash  "Serialize,Deserialize,PartialEq,Eq,Hash,Clone,Copy"
-    deref       "Deref,DerefMut"
-}
-```
-
 ### `xoxo!` — Bool Pattern Matching
 
 ```rust

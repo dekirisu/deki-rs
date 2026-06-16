@@ -17,8 +17,7 @@ proc-macro = true
 [dependencies]
 deki_proc = { workspace = true }
 maflow.workspace = true
-derive_preset = "0.1"
-paste = "1.0"
+
 quote.workspace = true
 syn.workspace = true
 proc-macro2.workspace = true
