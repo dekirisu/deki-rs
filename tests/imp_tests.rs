@@ -95,6 +95,28 @@ fn imp_multi_params() {
 }
 
 
+// 7. impl Trait return type (regression: impl in return type must not trigger impl-block detection)
+struct Displayable {
+    value: i32,
+}
+
+#[imp(Displayable)]
+fn new(value: i32) -> Self { Self { value } }
+
+#[imp(Displayable)]
+#[inline]
+/// Returns a displayable wrapper.
+fn displayable(&self) -> impl std::fmt::Display {
+    self.value.to_string()
+}
+
+#[test]
+fn imp_impl_trait_return() {
+    let s = Displayable::new(42);
+    let d = s.displayable();
+    assert!(format!("{}", d).contains("42"));
+}
+
 // Block \\
 
 #[imp(Greet)]

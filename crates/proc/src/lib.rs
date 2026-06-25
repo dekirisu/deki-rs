@@ -54,7 +54,11 @@ pub use {convert_case, proc_macro2, quote, syn};
     /// - `#[imp(*NewTraitName)] impl Type { ... }`: generate trait + impl
     /// - `#[imp(*)] impl Type { ... }`: auto-generate trait name + impl
     pub fn imp (attr:TokenStream,stream:TokenStream) -> TokenStream {
-        let is_impl = stream.to_token_stream().into_iter().find(|v|v.is_string("impl")).is_some();
+        let is_impl = stream.clone().into_iter().find_map(|t| match t {
+            TokenTree::Ident(i) if i == "impl" => Some(true),
+            TokenTree::Ident(i) if i == "fn" => Some(false),
+            _ => None,
+        }).unwrap_or(false);
         if is_impl {
            imp_hlpr(attr,stream)
         } else {
