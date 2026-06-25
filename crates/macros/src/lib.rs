@@ -31,7 +31,7 @@ pub fn cycle(input:CompilerTokens) -> CompilerTokens {
             }
 
             qt!{
-                impl #gimpl ::deki_core::Cycle for #ident #gtype #gwhere {
+                impl #gimpl Cycle for #ident #gtype #gwhere {
                     fn cycle_next(&self) -> Self {match self {#front}}
                     fn cycle_prev(&self) -> Self {match self {#back}}
                 }
@@ -338,13 +338,13 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
             let list = match name.as_str() {
                 "_Serde" => vec!["serde::Serialize", "serde::Deserialize"],
                 "_Hashable" => vec!["PartialEq", "Eq", "Hash", "Clone", "Copy"],
-                "_Deref" => vec!["drv::Deref", "drv::DerefMut"],
+                "_Deref" => vec!["derive_more::Deref", "derive_more::DerefMut"],
                 "_Payload" => vec!["serde::Serialize", "serde::Deserialize", "Component", "Clone"],
                 "_SevyMelt" => vec!["serde::Serialize", "serde::Deserialize", "Default", "Melt", "Component"],
                 "_Id" => vec!["PartialEq", "Eq", "PartialOrd", "Ord", "Hash", "Clone", "Copy", "Default"],
                 "_States" => vec!["PartialEq", "Eq", "Hash", "Clone", "Copy", "States", "Debug"],
                 "_SystemSet" => vec!["PartialEq", "Eq", "PartialOrd", "Ord", "Hash", "Debug", "Clone", "Copy", "Default", "SystemSet"],
-                "_Math" => vec!["drv::Add", "drv::Sub", "drv::Mul", "drv::Div"],
+                "_Math" => vec!["derive_more::Add", "derive_more::Sub", "derive_more::Mul", "derive_more::Div"],
                 _ => vec![name.as_str()],
             };
             derives.extend(list.into_iter().map(|v|v.to_string()));
