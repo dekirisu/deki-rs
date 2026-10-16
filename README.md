@@ -428,7 +428,7 @@ struct Point { x: i32, y: i32 }
 
 #### `#[phantom]` — PhantomData + Auto-Constructor
 
-Adds a `_phantom: PhantomData<(G1, G2, ...)>` field (capturing all generic type params) and generates a `new()` constructor. Works with named, tuple, and unit structs:
+Adds a `_phantom: PhantomData<(G1, G2, ...)>` field (capturing all generic type params) and generates a `new()` constructor. Works with named, tuple, unit structs **and enums**:
 
 ```rust
 use deki_macros::phantom;
@@ -449,6 +449,11 @@ assert_eq!(w.i0, 42);
 #[phantom]
 struct Singleton;
 let s = Singleton::new();
+
+// Enums — adds Phantom(G1, G2, ...) variant (no new() needed)
+#[phantom]
+enum Maybe<T> { None, Some(T) }
+let m: Maybe<i32> = Maybe::None;
 ```
 
 ---

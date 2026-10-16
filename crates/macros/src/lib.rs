@@ -407,21 +407,35 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
     /// ```rust
     /// use deki_macros::phantom;
     ///
+    /// // Structs — adds _phantom field + new() constructor
     /// #[phantom]
     /// struct Named<T: Default + PartialEq> { x: T, y: String }
     /// let n = Named::<i32>::new(42, "hello".into());
     /// assert_eq!(n.x, 42);
     ///
+    /// // Enums — adds Phantom(G1, G2, ...) variant
     /// #[phantom]
-    /// struct Tuple(i32, f64);
-    /// let t = Tuple::new(1, 2.0);
+    /// enum Maybe<T> { None, Some(T) }
+    /// let m: Maybe<i32> = Maybe::None;
     /// ```
     #[proc_macro_attribute]
     pub fn phantom(_attr: CompilerTokens, item: CompilerTokens) -> CompilerTokens {
-        use syn::{Field as SynField, FieldsUnnamed, GenericParam, ItemStruct, Fields, token};
+        use syn::ItemStruct;
+
+        // Try struct first, then enum
+        if let Ok(srct) = parse2::<ItemStruct>(item.clone().into()) {
+            phantom_struct(srct)
+        } else if let Ok(senum) = parse2::<syn::ItemEnum>(item.clone().into()) {
+            phantom_enum(senum)
+        } else {
+            item
+        }
+    }
+
+    fn phantom_struct(mut srct: syn::ItemStruct) -> CompilerTokens {
+        use syn::{Field as SynField, FieldsUnnamed, GenericParam, Fields, token};
         use syn::punctuated::Punctuated;
-        let item: TokenStream = item.into();
-        let mut srct: ItemStruct = parse2(item).unwrap();
+
         let a = srct.generics.params.iter().filter_map(|x|match x {
             GenericParam::Type(param) => Some(param.ident.to_string()),
             _ => None,
@@ -482,6 +496,38 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
                 }
             } 
         }.into()
+    }
+
+    fn phantom_enum(mut senum: syn::ItemEnum) -> CompilerTokens {
+        use syn::{GenericParam, Variant};
+        let a = senum.generics.params.iter().filter_map(|x|match x {
+            GenericParam::Type(param) => Some(param.ident.to_string()),
+            _ => None,
+        }).collect::<Vec<_>>().join(",");
+        let phantom_ty: syn::Type = parse2(TokenStream::from_str(&format!("std::marker::PhantomData<({a})>")).unwrap()).unwrap();
+
+        // Build the Phantom variant fields
+        let phantom_fields = syn::Fields::Unnamed(syn::FieldsUnnamed {
+            paren_token: syn::token::Paren::default(),
+            unnamed: [(syn::Field {
+                ident: None,
+                ty: phantom_ty,
+                attrs: vec![],
+                vis: syn::Visibility::Inherited,
+                mutability: syn::FieldMutability::None,
+                colon_token: None,
+            })].into_iter().collect(),
+        });
+
+        let phantom_variant = Variant {
+            attrs: vec![],
+            ident: "Phantom".ident_span(proc_macro2::Span::call_site()),
+            fields: phantom_fields,
+            discriminant: None,
+        };
+
+        senum.variants.push(phantom_variant);
+        qt![#senum].into()
     }
 
 // EOF \\

@@ -17,6 +17,7 @@ derive-new = "0.7.0"
 extension-traits.workspace = true   
 buns = "0.1"
 fastrand = {version="2.2.0",optional=true}
+crossbeam = "0.8"
 
 derive_more = {version="1.0.0",features=["full"], optional = true}
 maflow.workspace = true
@@ -29,3 +30,8 @@ random = ["dep:fastrand"]
 approx = []
 lerp = []
 derive_more = ["dep:derive_more"]
+note-info = []
+note-debug = []
+note-warning = []
+note-error = []
+note-critical = []
