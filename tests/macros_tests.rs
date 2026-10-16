@@ -142,7 +142,7 @@ struct UnitLike(i32, f64);
 
 #[test]
 fn phantom_tuple_no_generics() {
-    let u = UnitLike::new(10, 3.14);
+    let u = UnitLike::new(10, 3.);
     assert_eq!(u.0, 10);
 }
 

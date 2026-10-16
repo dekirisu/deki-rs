@@ -322,7 +322,7 @@ pub mod collections;
     }
 
     /// Global unbounded channel shared across all crates.
-    static DEKI_NOTIFY: Lazy<(beam::Sender<DekiNote>,beam::Receiver<DekiNote>)> = Lazy::new(||beam::unbounded());
+    static DEKI_NOTIFY: Lazy<(beam::Sender<DekiNote>,beam::Receiver<DekiNote>)> = Lazy::new(beam::unbounded);
 
     /// Drain the channel, returning all pending notes.
     #[imp(DekiNote)]
@@ -391,7 +391,7 @@ pub mod collections;
     #[inline]
     #[allow(unused_variables)]
     pub fn warn(source:&'static str,message:String){
-        #[cfg(feature = "note-warning")]
+        #[cfg(feature = "note-warn")]
         DekiNote::new("warn", source, message).write();
     }
 
@@ -421,7 +421,7 @@ pub mod collections;
     #[inline]
     #[allow(unused_variables)]
     pub fn crit(source:&'static str,message:String){
-        #[cfg(feature = "note-critical")]
+        #[cfg(feature = "note-crit")]
         DekiNote::new("crit", source, message).write();
     }
 

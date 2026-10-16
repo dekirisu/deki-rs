@@ -1,6 +1,6 @@
 [package]
 name = "deki_core"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2024"
 
 authors = ["Dekirisu <dekirisu@gmail.com>"]
@@ -30,8 +30,11 @@ random = ["dep:fastrand"]
 approx = []
 lerp = []
 derive_more = ["dep:derive_more"]
+
+note-all = ["note-info","note-debug","note-error","note-warn","note-crit"]
+note-crutial = ["note-error","note-warn","note-crit"]
 note-info = []
 note-debug = []
-note-warning = []
+note-warn = []
 note-error = []
-note-critical = []
+note-crit = []

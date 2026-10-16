@@ -1,6 +1,6 @@
 [package]
 name = "deki"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2024"
 
 authors = ["Dekirisu <dekirisu@gmail.com>"]
@@ -44,6 +44,14 @@ approx = ["deki_core/approx"]
 lerp = ["deki_core/lerp"]
 derive_more = ["deki_core/derive_more"]
 proc = ["deki_proc"]
+
+note-all = ["deki_core/note-all"]
+note-crutial = ["deki_core/note-crutial"]
+note-info = ["deki_core/note-info"]
+note-debug = ["deki_core/note-debug"]
+note-warn = ["deki_core/note-warn"]
+note-error = ["deki_core/note-error"]
+note-crit = ["deki_core/note-crit"]
 
 [workspace]
 members = ["crates/*", "crates/proc"]
