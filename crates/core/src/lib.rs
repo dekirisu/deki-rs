@@ -294,6 +294,21 @@ pub mod collections;
         }
     }}
 
+    /// Ternary operator — any type.
+    ///
+    /// # Example
+    /// ```
+    /// use deki_core::choose;
+    /// let x: i32 = choose!(true, 1, 2);
+    /// assert_eq!(x, 1);
+    /// let y: &str = choose!(false, "yes", "no");
+    /// assert_eq!(y, "no");
+    /// ```
+    #[macro_export]
+    macro_rules! choose {($cond:expr, $then:expr, $else:expr) => {{
+        if $cond { $then } else { $else }
+    }}}
+
 
 // EOF \\
 

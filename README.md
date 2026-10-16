@@ -231,6 +231,14 @@ deki_core::default!(MyStruct = Self { a: 0, b: Default::default() });
 // => impl Default for MyStruct { fn default() -> Self { Self { a: 0, b: Default::default() } } }
 ```
 
+#### `choose!` — Ternary for Any Type
+
+```rust
+use deki_core::choose;
+let x: i32 = choose!(true, 1, 2);   // 1
+let y: &str = choose!(false, "yes", "no"); // "no"
+```
+
 ---
 
 ## deki_macros — Proc Macros

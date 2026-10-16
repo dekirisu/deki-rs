@@ -1,4 +1,5 @@
 use deki_macros::{phantom, *};
+use deki_core::choose;
 
 // 1. ForceDefault
 #[derive(ForceDefault)]
@@ -196,4 +197,30 @@ enum Tag<A, B> { Ready, Waiting }
 fn phantom_enum_multi_generics() {
     let t = Tag::<i32, String>::Ready;
     assert!(matches!(t, Tag::Ready));
+}
+
+// 11. if_! — ternary for any type \
+
+#[test]
+fn choose_true_i32() {
+    let x: i32 = choose!(true, 42, 0);
+    assert_eq!(x, 42);
+}
+
+#[test]
+fn choose_false_i32() {
+    let x: i32 = choose!(false, 42, 0);
+    assert_eq!(x, 0);
+}
+
+#[test]
+fn choose_str() {
+    let s: &str = choose!(true, "yes", "no");
+    assert_eq!(s, "yes");
+}
+
+#[test]
+fn choose_vec() {
+    let v: Vec<i32> = choose!(false, vec![1], vec![2]);
+    assert_eq!(v, vec![2]);
 }
