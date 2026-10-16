@@ -391,4 +391,97 @@ pub fn force_default (item:CompilerTokens) -> CompilerTokens {
         out.into()
     }
 
+// Phantom + New Constructor \\
+
+    /// Add a `PhantomData` field and generate a `new()` constructor.
+    ///
+    /// For **named** structs: adds `_phantom: PhantomData<(G1, G2, ...)>` as the last field,
+    /// generates `new(field1: ty1, field2: ty2, ...) -> Self { Self { field1, field2, ..., _phantom } }`
+    ///
+    /// For **tuple** structs: renames tuple indices to `i0`, `i1`, etc., appends a phantom field,
+    /// generates `new(i0: ty0, i1: ty1, ...) -> Self { (i0, i1, ..., _phantom) }`
+    ///
+    /// For **unit** structs: converts to a single-field tuple struct with only the phantom data.
+    ///
+    /// # Usage
+    /// ```rust
+    /// use deki_macros::phantom;
+    ///
+    /// #[phantom]
+    /// struct Named<T: Default + PartialEq> { x: T, y: String }
+    /// let n = Named::<i32>::new(42, "hello".into());
+    /// assert_eq!(n.x, 42);
+    ///
+    /// #[phantom]
+    /// struct Tuple(i32, f64);
+    /// let t = Tuple::new(1, 2.0);
+    /// ```
+    #[proc_macro_attribute]
+    pub fn phantom(_attr: CompilerTokens, item: CompilerTokens) -> CompilerTokens {
+        use syn::{Field as SynField, FieldsUnnamed, GenericParam, ItemStruct, Fields, token};
+        use syn::punctuated::Punctuated;
+        let item: TokenStream = item.into();
+        let mut srct: ItemStruct = parse2(item).unwrap();
+        let a = srct.generics.params.iter().filter_map(|x|match x {
+            GenericParam::Type(param) => Some(param.ident.to_string()),
+            _ => None,
+        }).collect::<Vec<_>>().join(",");
+        let b = TokenStream::from_str(&format!("std::marker::PhantomData<({a})>")).unwrap();
+        let mut field = SynField{
+            ident: None,
+            ty: parse2(b).unwrap(),
+            attrs: vec![],
+            vis: syn::Visibility::Inherited,
+            mutability: syn::FieldMutability::None,
+            colon_token: None,
+        };
+        let mut inpt = "()".to_string();
+        let mut atri = "(Default::default())".to_string();
+        match &mut srct.fields {
+            syn::Fields::Named(fields) => {
+                let a = fields.named.iter().map(|a|{
+                    [a.ident.clone().unwrap().into_token_stream(),a.ty.to_token_stream()]
+                }).collect::<Vec<_>>();
+                let b = a.iter().map(|a|format!("{}:{}",a[0],a[1])).collect::<Vec<_>>();
+                inpt = format!("({})",b.join(","));
+                let mut c = a.iter().map(|a|format!("{}",a[0])).collect::<Vec<_>>();
+                c.push("_phantom:Default::default()".to_string());
+                atri = format!("{{{}}}",c.join(","));
+                field.ident = Some("_phantom".ident());
+                fields.named.push(field);
+            },
+            syn::Fields::Unnamed(fields) => {
+                let a = fields.unnamed.iter().enumerate().map(|(i,a)|{
+                    [format!("i{i}").ident().into_token_stream(),a.ty.to_token_stream()]
+                }).collect::<Vec<_>>();                
+                let b = a.iter().map(|a|format!("{}:{}",a[0],a[1])).collect::<Vec<_>>();
+                inpt = format!("({})",b.join(","));
+                let mut c = a.iter().map(|a|format!("{}",a[0])).collect::<Vec<_>>();
+                c.push("Default::default()".to_string());
+                atri = format!("({})",c.join(","));
+                fields.unnamed.push(field);
+           },
+            syn::Fields::Unit => {
+                srct.fields = Fields::Unnamed(FieldsUnnamed{
+                    unnamed: Punctuated::from_iter([field]),
+                    paren_token: token::Paren::default()
+                })
+            },
+        }
+        let inpt = TokenStream::from_str(&inpt).unwrap();
+        let atri = TokenStream::from_str(&atri).unwrap();
+
+        let name = srct.ident.clone();
+        let (i,t,w) = srct.generics.split_for_impl();
+
+        qt!{ 
+            #srct
+            impl #i #name #t #w {
+                pub fn new #inpt -> Self {
+                    Self #atri
+                }
+            } 
+        }.into()
+    }
+
 // EOF \\

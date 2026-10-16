@@ -426,6 +426,31 @@ struct Point { x: i32, y: i32 }
 // => #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 ```
 
+#### `#[phantom]` — PhantomData + Auto-Constructor
+
+Adds a `_phantom: PhantomData<(G1, G2, ...)>` field (capturing all generic type params) and generates a `new()` constructor. Works with named, tuple, and unit structs:
+
+```rust
+use deki_macros::phantom;
+
+// Named fields — adds _phantom as last field + new() constructor
+#[phantom]
+struct Config<T> { timeout: u32, name: String }
+let cfg = Config::<i32>::new(30, "default".into());
+assert_eq!(cfg.timeout, 30);
+
+// Tuple fields — renames indices to i0, i1... + appends phantom
+#[phantom]
+struct Wrapper(i32, f64);
+let w = Wrapper::new(42, 1.5);
+assert_eq!(w.i0, 42);
+
+// Unit struct — converts to single-field tuple with PhantomData
+#[phantom]
+struct Singleton;
+let s = Singleton::new();
+```
+
 ---
 
 ## License
