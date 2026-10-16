@@ -1,5 +1,5 @@
 use std::ops::{Add, Range, RangeInclusive, Rem, Sub};
-
+use crossbeam::channel as beam;
 pub use buns;
 use deki_macros::imp;
 pub use maflow::*;
@@ -310,130 +310,127 @@ pub mod collections;
     }}}
 
 
-// EOF \\
 
 // DekiNote — Static Notification Channel \\
 
-    /// Static notification channel — log events sent via crossbeam.
-    pub mod dekinote {
-        use super::*;
-        use crossbeam::channel as beam;
-
-        /// A log/event note: `level`, `source` (caller crate), and formatted `message`.
-        #[derive(New)]
-        pub struct DekiNote {
-            pub level: &'static str,
-            pub source: &'static str,
-            pub message: String 
-        }
-
-        /// Global unbounded channel shared across all crates.
-        static DEKI_NOTIFY: Lazy<(beam::Sender<DekiNote>,beam::Receiver<DekiNote>)> = Lazy::new(||beam::unbounded());
-
-        /// Drain the channel, returning all pending notes.
-        #[imp(DekiNote)]
-        pub fn read() -> Vec<Self> {
-            let mut out = vec![];
-            while let Ok(msg) = DEKI_NOTIFY.1.try_recv() {
-                out.push(msg);
-            }
-            out
-        }
-
-        /// Drain and filter pending notes.
-        #[imp(DekiNote)]
-        #[inline]
-        pub fn read_filter<F:FnMut(&Self)->bool>(filter:F) -> Vec<Self> {
-            Self::read().into_iter().filter(filter).into_vec()
-        }
-
-        /// Format a note as `[level][source]message`.
-        #[imp(DekiNote)]
-        #[inline]
-        pub fn print_row(&self) -> String {
-            let Self { level, source, message } = self;
-            format!("[{level}][{source}]{message}")
-        }
-
-        /// Send this note into the global channel.
-        #[imp(DekiNote)]
-        #[inline] 
-        pub fn write(self){
-            DEKI_NOTIFY.0.send(self).unwrap();
-        }
-
-        /// Log at `info` level (gated by `note-info` feature).
-        #[imp(DekiNote)]
-        #[inline]
-        #[allow(unused_variables)]
-        pub fn info(source:&'static str,message:String){
-            #[cfg(feature = "note-info")]
-            DekiNote::new("info", source, message).write();
-        }
-
-        /// Log at info level using `NOTE_SOURCE` from the caller.
-        #[macro_export]
-        macro_rules! note_info { ($($any:tt)*) => {
-            DekiNote::info(NOTE_SOURCE, format!($($any)*))
-        }}
-
-        /// Log at `debug` level (gated by `note-debug` feature).
-        #[imp(DekiNote)]
-        #[inline]
-        #[allow(unused_variables)]
-        pub fn debug(source:&'static str,message:String){
-            #[cfg(feature = "note-debug")]
-            DekiNote::new("debg", source, message).write();
-        }
-
-        /// Log at debug level using `NOTE_SOURCE` from the caller.
-        #[macro_export]
-        macro_rules! note_debug { ($($any:tt)*) => {
-            DekiNote::debug(NOTE_SOURCE, format!($($any)*))
-        }}
-
-        /// Log at `warn` level (gated by `note-warning` feature).
-        #[imp(DekiNote)]
-        #[inline]
-        #[allow(unused_variables)]
-        pub fn warn(source:&'static str,message:String){
-            #[cfg(feature = "note-warning")]
-            DekiNote::new("warn", source, message).write();
-        }
-
-        /// Log at warn level using `NOTE_SOURCE` from the caller.
-        #[macro_export]
-        macro_rules! note_warn { ($($any:tt)*) => {
-            DekiNote::warn(NOTE_SOURCE, format!($($any)*))
-        }}
-
-        /// Log at `error` level (gated by `note-error` feature).
-        #[imp(DekiNote)]
-        #[inline]
-        #[allow(unused_variables)]
-        pub fn error(source:&'static str,message:String){
-            #[cfg(feature = "note-error")]
-            DekiNote::new("erro", source, message).write();
-        }
-
-        /// Log at error level using `NOTE_SOURCE` from the caller.
-        #[macro_export]
-        macro_rules! note_error { ($($any:tt)*) => {
-            DekiNote::error(NOTE_SOURCE, format!($($any)*))
-        }}
-
-        /// Log at `critical` level (gated by `note-critical` feature).
-        #[imp(DekiNote)]
-        #[inline]
-        #[allow(unused_variables)]
-        pub fn crit(source:&'static str,message:String){
-            #[cfg(feature = "note-critical")]
-            DekiNote::new("crit", source, message).write();
-        }
-
-        /// Log at critical level using `NOTE_SOURCE` from the caller.
-        #[macro_export]
-        macro_rules! note_crit { ($($any:tt)*) => {
-            DekiNote::crit(NOTE_SOURCE, format!($($any)*))
-        }}
+    /// A log/event note: `level`, `source` (caller crate), and formatted `message`.
+    #[derive(New)]
+    pub struct DekiNote {
+        pub level: &'static str,
+        pub source: &'static str,
+        pub message: String 
     }
+
+    /// Global unbounded channel shared across all crates.
+    static DEKI_NOTIFY: Lazy<(beam::Sender<DekiNote>,beam::Receiver<DekiNote>)> = Lazy::new(||beam::unbounded());
+
+    /// Drain the channel, returning all pending notes.
+    #[imp(DekiNote)]
+    pub fn read() -> Vec<Self> {
+        let mut out = vec![];
+        while let Ok(msg) = DEKI_NOTIFY.1.try_recv() {
+            out.push(msg);
+        }
+        out
+    }
+
+    /// Drain and filter pending notes.
+    #[imp(DekiNote)]
+    #[inline]
+    pub fn read_filter<F:FnMut(&Self)->bool>(filter:F) -> Vec<Self> {
+        Self::read().into_iter().filter(filter).into_vec()
+    }
+
+    /// Format a note as `[level][source]message`.
+    #[imp(DekiNote)]
+    #[inline]
+    pub fn print_row(&self) -> String {
+        let Self { level, source, message } = self;
+        format!("[{level}][{source}]{message}")
+    }
+
+    /// Send this note into the global channel.
+    #[imp(DekiNote)]
+    #[inline] 
+    pub fn write(self){
+        DEKI_NOTIFY.0.send(self).unwrap();
+    }
+
+    /// Log at `info` level (gated by `note-info` feature).
+    #[imp(DekiNote)]
+    #[inline]
+    #[allow(unused_variables)]
+    pub fn info(source:&'static str,message:String){
+        #[cfg(feature = "note-info")]
+        DekiNote::new("info", source, message).write();
+    }
+
+    /// Log at info level using `NOTE_SOURCE` from the caller.
+    #[macro_export]
+    macro_rules! note_info { ($($any:tt)*) => {
+        DekiNote::info(NOTE_SOURCE, format!($($any)*))
+    }}
+
+    /// Log at `debug` level (gated by `note-debug` feature).
+    #[imp(DekiNote)]
+    #[inline]
+    #[allow(unused_variables)]
+    pub fn debug(source:&'static str,message:String){
+        #[cfg(feature = "note-debug")]
+        DekiNote::new("debg", source, message).write();
+    }
+
+    /// Log at debug level using `NOTE_SOURCE` from the caller.
+    #[macro_export]
+    macro_rules! note_debug { ($($any:tt)*) => {
+        DekiNote::debug(NOTE_SOURCE, format!($($any)*))
+    }}
+
+    /// Log at `warn` level (gated by `note-warning` feature).
+    #[imp(DekiNote)]
+    #[inline]
+    #[allow(unused_variables)]
+    pub fn warn(source:&'static str,message:String){
+        #[cfg(feature = "note-warning")]
+        DekiNote::new("warn", source, message).write();
+    }
+
+    /// Log at warn level using `NOTE_SOURCE` from the caller.
+    #[macro_export]
+    macro_rules! note_warn { ($($any:tt)*) => {
+        DekiNote::warn(NOTE_SOURCE, format!($($any)*))
+    }}
+
+    /// Log at `error` level (gated by `note-error` feature).
+    #[imp(DekiNote)]
+    #[inline]
+    #[allow(unused_variables)]
+    pub fn error(source:&'static str,message:String){
+        #[cfg(feature = "note-error")]
+        DekiNote::new("erro", source, message).write();
+    }
+
+    /// Log at error level using `NOTE_SOURCE` from the caller.
+    #[macro_export]
+    macro_rules! note_error { ($($any:tt)*) => {
+        DekiNote::error(NOTE_SOURCE, format!($($any)*))
+    }}
+
+    /// Log at `critical` level (gated by `note-critical` feature).
+    #[imp(DekiNote)]
+    #[inline]
+    #[allow(unused_variables)]
+    pub fn crit(source:&'static str,message:String){
+        #[cfg(feature = "note-critical")]
+        DekiNote::new("crit", source, message).write();
+    }
+
+    /// Log at critical level using `NOTE_SOURCE` from the caller.
+    #[macro_export]
+    macro_rules! note_crit { ($($any:tt)*) => {
+        DekiNote::crit(NOTE_SOURCE, format!($($any)*))
+    }}
+
+
+
+// EOF \\
